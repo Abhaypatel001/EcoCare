@@ -1,759 +1,1299 @@
-🌱 EcoCare — Smart Waste Management System
+# 🌱 EcoCare — Smart Waste Management System
 
-EcoCare is a full-stack MERN-based Waste Management System designed to make waste reporting, pickup requests, complaint tracking, and municipal administration easier and more transparent.
+<p align="center">
+  <strong>A full-stack MERN application for smarter waste reporting, pickup management, citizen engagement, and administrative monitoring.</strong>
+</p>
 
-The platform provides separate experiences for citizens and administrators, allowing citizens to report waste-related problems and request waste pickups, while administrators can manage complaints, pickups, citizens, and system analytics from a centralized dashboard.
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/Backend-Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/API-Express.js-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express.js">
+  <img src="https://img.shields.io/badge/Database-MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
+  <img src="https://img.shields.io/badge/Auth-JWT-000000?style=for-the-badge" alt="JWT">
+</p>
 
-📌 Table of Contents
-About the Project
-Problem Statement
-Our Solution
-Key Features
-Citizen Features
-Admin Features
-Waste Management
-Complaint Management
-Pickup Management
-Dashboard & Analytics
-Authentication & Security
-Technology Stack
-Project Structure
-Application Workflow
-REST API
-Database
-Installation
-Environment Variables
-Running the Project
-API Testing
-Responsive Design
-Future Enhancements
-Project Status
-Git Workflow
-Contributing
-Developer
-License
-🌍 About the Project
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Completed-16A34A?style=flat-square" alt="Project Status">
+  <img src="https://img.shields.io/badge/Responsive-Yes-2563EB?style=flat-square" alt="Responsive">
+  <img src="https://img.shields.io/badge/License-MIT-111827?style=flat-square" alt="License">
+</p>
 
-Waste management is an important part of maintaining clean, healthy, and sustainable communities. Traditional complaint systems can be slow, difficult to track, and lack transparency.
+---
 
-EcoCare provides a centralized digital platform where citizens can:
+## 📌 Table of Contents
 
-Report waste-related problems
-Track submitted complaints
-Request waste pickups
-View pickup details and status
-Access waste-management awareness information
+- [About EcoCare](#-about-ecocare)
+- [Problem Statement](#-problem-statement)
+- [Solution](#-solution)
+- [Objectives](#-objectives)
+- [Key Features](#-key-features)
+- [Citizen Module](#-citizen-module)
+- [Complaint Management](#-complaint-management)
+- [Waste Pickup Management](#-waste-pickup-management)
+- [Admin Module](#-admin-module)
+- [Analytics Dashboard](#-analytics-dashboard)
+- [Authentication and Security](#-authentication-and-security)
+- [Application Workflow](#-application-workflow)
+- [System Architecture](#-system-architecture)
+- [Technology Stack](#-technology-stack)
+- [Project Structure](#-project-structure)
+- [Database Design](#-database-design)
+- [REST API](#-rest-api)
+- [API Testing](#-api-testing)
+- [Installation](#-installation)
+- [Environment Variables](#-environment-variables)
+- [Running the Project](#-running-the-project)
+- [Responsive Design](#-responsive-design)
+- [Awareness Module](#-awareness-module)
+- [Future Enhancements](#-future-enhancements)
+- [Project Status](#-project-status)
+- [Git and GitHub Workflow](#-git-and-github-workflow)
+- [Repository](#-repository)
+- [Contributing](#-contributing)
+- [Security Considerations](#-security-considerations)
+- [Developer](#-developer)
+- [License](#-license)
 
-Administrators can:
+---
 
-Manage citizen complaints
-Manage pickup requests
-Update complaint and pickup statuses
-View registered citizens
-Monitor system statistics
-Analyze waste-management activity
-❗ Problem Statement
+## 🌱 About EcoCare
 
-Many communities face challenges such as:
+**EcoCare** is a full-stack **Waste Management System** designed to make waste-related services more organized, transparent, and accessible.
 
-Uncollected garbage
-Illegal waste dumping
-Dirty public areas
-Blocked drains
-Difficulty requesting waste pickup
-Lack of complaint tracking
-Limited transparency between citizens and administrators
-Difficulty monitoring waste-management activities
+The platform provides a digital bridge between **citizens** and **administrators**. Citizens can create accounts, report waste-related problems, request waste pickups, track their complaints and pickup requests, and learn about responsible waste management. Administrators can monitor citizens, manage complaints, manage pickup requests, update statuses, and view live system analytics.
 
-EcoCare aims to provide a structured digital solution for these problems.
+EcoCare is built using the **MERN stack**:
 
-💡 Our Solution
+> **MongoDB + Express.js + React + Node.js**
 
-EcoCare connects citizens and administrators through a single web application.
+The project focuses on practical full-stack development concepts such as authentication, authorization, REST APIs, MongoDB data management, protected routes, responsive UI, dashboards, and role-based access control.
 
-Citizen Side
+---
 
-Citizens can register and log in to their accounts, report problems, request waste pickups, and track their activities.
+## 🚨 Problem Statement
 
-Administration Side
+Traditional waste management processes can face problems such as:
 
-Administrators receive centralized access to complaints, pickup requests, citizens, and analytics.
+- Difficulty reporting waste-related issues.
+- Limited visibility into complaint status.
+- Unorganized waste pickup requests.
+- Manual tracking of citizen requests.
+- Lack of centralized administrative monitoring.
+- Limited system-level analytics.
+- Poor communication between citizens and waste-management authorities.
 
-This creates a simple workflow:
+EcoCare addresses these challenges by providing a centralized digital platform.
 
-Citizen → Report / Request → Admin → Process → Update Status → Citizen
+---
 
-🚀 Key Features
-🔐 Secure user registration and login
-👤 Citizen dashboard
-🛡️ Admin authentication
-📢 Waste complaint reporting
-📋 Complaint tracking
-🚛 Waste pickup requests
-🆔 Automatic pickup booking ID
-📊 Admin analytics
-👥 Citizen management
-🔄 Complaint status management
-🔄 Pickup status management
-📚 Waste-management awareness section
-📱 Responsive user interface
-🗄️ MongoDB database
-🔑 JWT-based authentication
-🔒 Role-based authorization
-👨‍👩‍👧 Citizen Features
-🔐 Registration & Login
+## 💡 Solution
 
-Citizens can create an account using:
+EcoCare provides separate experiences for **Citizens** and **Administrators**.
 
-Name
-Email
-Phone number
-Password
+### 👤 Citizens can:
 
-Registered users can securely log in to access their dashboard.
+- Register and log in.
+- Access their personal dashboard.
+- Report waste-related complaints.
+- Track complaint status.
+- Request waste pickup.
+- Track pickup booking status.
+- View their complaint and pickup history.
+- Access waste-management awareness content.
 
-🏠 Citizen Dashboard
+### 🛡️ Administrators can:
 
-The dashboard provides citizens with an overview of their activities.
+- Access a protected admin dashboard.
+- View registered citizens.
+- View and manage complaints.
+- Update complaint status.
+- View and manage pickup requests.
+- Update pickup status.
+- Search and filter records.
+- Monitor live system analytics.
 
-Users can view:
+---
 
-Complaint activity
-Pickup requests
-Pickup status
-Account information
-📢 Report Waste Issue
+## 🎯 Objectives
 
-Citizens can report waste-related problems.
+The main objectives of EcoCare are:
 
-Supported complaint categories include:
+1. Digitize waste-related complaint reporting.
+2. Simplify waste pickup booking.
+3. Provide transparent request tracking.
+4. Provide administrators with centralized control.
+5. Implement secure authentication and authorization.
+6. Store application data using MongoDB.
+7. Build reusable REST APIs.
+8. Provide a responsive interface for desktop, tablet, and mobile users.
+9. Demonstrate a complete real-world MERN application.
 
-Garbage Collection
-Waste Dumping
-Dirty Area
-Blocked Drain
-Other
+---
+
+# ✨ Key Features
+
+| Feature | Description |
+|---|---|
+| 🔐 Authentication | Secure registration and login |
+| 👤 Citizen Dashboard | Personal activity overview |
+| 📢 Complaint Reporting | Report waste-related problems |
+| 📋 Complaint Tracking | Track complaint status |
+| 🚛 Pickup Booking | Schedule waste pickup |
+| 🧾 Booking ID | Unique pickup booking reference |
+| 📦 Pickup Tracking | Track pickup status |
+| 🛡️ Admin Dashboard | Centralized administration |
+| 👥 Citizen Management | View registered citizens |
+| 📊 Analytics | Live complaint and pickup statistics |
+| 🔎 Search & Filters | Find records quickly |
+| 📚 Awareness | Waste-management awareness content |
+| 📱 Responsive UI | Desktop, tablet, and mobile support |
+| 🔑 Role-Based Access | Separate citizen and admin permissions |
+
+---
+
+# 👤 Citizen Module
+
+The citizen module is designed for users who want to interact with waste-management services.
+
+## Citizen Features
+
+### 1. Registration
+
+New users can create an account using:
+
+- Name
+- Email
+- Phone number
+- Password
+
+Passwords are stored securely using hashing.
+
+### 2. Login
+
+Registered users can log in using their credentials.
+
+After successful authentication, the backend returns a JWT token that is used to access protected APIs.
+
+### 3. Dashboard
+
+The citizen dashboard provides access to:
+
+- Complaint activity
+- Pickup requests
+- Request status
+- Personal information
+- Quick actions
+
+### 4. Report an Issue
+
+Citizens can report problems such as:
+
+- Garbage Collection
+- Waste Dumping
+- Dirty Area
+- Blocked Drain
+- Other
 
 Each complaint contains information such as:
 
-Complaint title
-Description
-Location
-Category
-Status
-Submission date
-📋 My Complaints
+- Title
+- Description
+- Location
+- Category
+- Status
+- Optional image field
 
-Citizens can view complaints submitted through their account.
+### 5. Complaint Tracking
 
-Complaint statuses include:
+Citizens can view their own complaints and track statuses such as:
 
+- Pending
+- In Progress
+- Resolved
+- Rejected
+
+### 6. Waste Pickup Request
+
+Citizens can request pickup for:
+
+- Organic Waste
+- Dry Recyclables
+- E-Waste
+- Bulk Waste
+
+They can provide:
+
+- Quantity
+- Pickup date
+- Pickup time
+- Address type
+- Full name
+- Phone
+- Address
+- Special instructions
+
+A unique booking ID is generated for each pickup request.
+
+### 7. Pickup Tracking
+
+Citizens can view their pickup requests and track statuses:
+
+- Scheduled
+- In Progress
+- Completed
+- Cancelled
+
+---
+
+# 📢 Complaint Management
+
+The complaint-management system allows citizens to report waste-related problems digitally.
+
+## Complaint Lifecycle
+
+```text
+Citizen
+   ↓
+Create Complaint
+   ↓
 Pending
+   ↓
+Admin Reviews
+   ↓
 In Progress
-Resolved
-Rejected
+   ↓
+Resolved / Rejected
+```
 
-This allows users to monitor the progress of their reported issues.
+## Complaint Categories
 
-🚛 Waste Pickup System
+- Garbage Collection
+- Waste Dumping
+- Dirty Area
+- Blocked Drain
+- Other
 
-Citizens can request waste collection directly through EcoCare.
+## Complaint Statuses
 
-Supported Waste Types
-Organic Waste
-Dry Recyclables
-E-Waste
-Bulk Waste
-Pickup Information
+| Status | Meaning |
+|---|---|
+| Pending | Complaint has been submitted |
+| In Progress | Complaint is being handled |
+| Resolved | Complaint has been resolved |
+| Rejected | Complaint has been rejected |
 
-Users can provide:
+Administrators can update complaint status through the protected admin API.
 
-Waste type
-Quantity
-Pickup date
-Pickup time
-Full name
-Phone number
-Address type
-Complete address
-Additional instructions
-🕐 Pickup Time Slots
+---
 
-EcoCare supports three pickup time slots:
+# 🚛 Waste Pickup Management
 
-🌅 Morning
-☀️ Afternoon
-🌆 Evening
-🏠 Address Types
+EcoCare allows citizens to request scheduled waste collection.
 
-Users can select:
+## Supported Waste Types
 
-Home
-Society / Apartment
-Office / Commercial
-🆔 Pickup Booking ID
+- Organic Waste
+- Dry Recyclables
+- E-Waste
+- Bulk Waste
 
-Every successful pickup request receives a unique booking ID.
+## Pickup Status
+
+| Status | Meaning |
+|---|---|
+| Scheduled | Pickup has been scheduled |
+| In Progress | Pickup is currently being processed |
+| Completed | Pickup has been completed |
+| Cancelled | Pickup has been cancelled |
+
+## Booking ID
+
+Every pickup request receives a unique booking ID in the format:
+
+```text
+PK######
+```
 
 Example:
 
-PK123456
+```text
+PK482731
+```
 
-This makes it easier to identify and track individual pickup requests.
+The booking ID makes it easier to identify and track a pickup request.
 
-🔄 Pickup Status
+---
 
-Administrators can update pickup requests through different stages:
+# 🛡️ Admin Module
 
-Scheduled
-In Progress
-Completed
-Cancelled
+The admin module provides centralized management of the EcoCare platform.
 
-Citizens can view the latest pickup status from their dashboard.
+## Admin Dashboard
 
-📢 Complaint Management
+The dashboard provides an overview of:
 
-Administrators can view all submitted complaints.
+- Total citizens
+- Total complaints
+- Complaint statuses
+- Total pickups
+- Pickup statuses
+- Recent activity
 
-Admin functionality includes:
+## Admin Functions
 
-View complaints
-Search complaints
-Filter complaints
-View complaint details
-Update complaint status
+### 👥 Citizen Management
 
-Complaint workflow:
+Administrators can view registered citizens and related information such as:
 
-Pending → In Progress → Resolved
+- Name
+- Email
+- Phone
+- Registration date
+- Complaint count
+- Pickup count
 
-A complaint can also be marked as:
+### 📢 Complaint Management
 
-Rejected
+Administrators can:
 
-👨‍💼 Admin Portal
+- View all complaints.
+- Search complaints.
+- Filter complaints.
+- View complaint details.
+- Update complaint status.
 
-EcoCare provides a dedicated administration system.
+### 🚛 Pickup Management
 
-Administrators have access to:
+Administrators can:
 
-Admin Dashboard
-Complaint Management
-Pickup Management
-Citizen Management
-Analytics
+- View all pickup requests.
+- Search pickup requests.
+- Filter pickup requests.
+- View booking details.
+- Update pickup status.
 
-Admin access is protected using role-based authorization.
+---
 
-Only users with the admin role can access protected admin APIs.
+# 📊 Analytics Dashboard
 
-📊 Dashboard & Analytics
-
-The admin dashboard provides an overview of the system.
+EcoCare includes backend-driven analytics for administrative monitoring.
 
 Analytics include:
 
-Citizens
-Total registered citizens
-Complaints
-Total complaints
-Pending complaints
-In Progress complaints
-Resolved complaints
-Rejected complaints
-Pickups
-Total pickup requests
-Scheduled pickups
-In Progress pickups
-Completed pickups
-Cancelled pickups
+### Citizens
 
-This gives administrators a centralized view of the current system activity.
+```text
+Total Registered Citizens
+```
 
-👥 Citizen Management
+### Complaints
 
-Administrators can view registered citizens.
+```text
+Total Complaints
+├── Pending
+├── In Progress
+├── Resolved
+└── Rejected
+```
 
-Citizen information includes:
+### Pickups
 
-Name
-Email
-Phone
-Registration date
-Number of complaints
-Number of pickup requests
+```text
+Total Pickups
+├── Scheduled
+├── In Progress
+├── Completed
+└── Cancelled
+```
 
-This helps administrators understand citizen activity within the system.
+The analytics are calculated from MongoDB data rather than relying on hard-coded frontend numbers.
 
-🔐 Authentication & Security
+---
 
-EcoCare uses authentication and authorization mechanisms to protect user data and admin functionality.
+# 🔐 Authentication and Security
 
-JWT Authentication
+EcoCare uses **JWT-based authentication** and **role-based authorization**.
 
-JSON Web Tokens are used for authenticated API requests.
+## Authentication Flow
 
-Protected requests use:
-
+```text
+User
+  ↓
+Login
+  ↓
+Backend validates credentials
+  ↓
+JWT generated
+  ↓
+Frontend stores authenticated user information
+  ↓
+Protected API requests include:
 Authorization: Bearer <token>
+```
 
-Password Security
+## Password Security
 
 Passwords are hashed using:
 
+```text
 bcryptjs
+```
 
-Passwords are never stored as plain text.
+Plain-text passwords are not stored in the database.
 
-Role-Based Authorization
+## Authorization
 
 EcoCare supports two roles:
 
+```text
 user
 admin
+```
 
-Admin-only operations require the authenticated user's role to be admin.
+Protected backend routes verify the JWT token before allowing access.
 
-🛠️ Technology Stack
-Frontend
-React.js
-React Router
-JavaScript
-HTML5
-CSS3
-Fetch API
-Vite
-Backend
-Node.js
-Express.js
-REST API
-JWT
-bcryptjs
-CORS
-dotenv
-Database
+Admin-only endpoints additionally verify the user's role.
+
+---
+
+# 🔄 Application Workflow
+
+## Citizen Workflow
+
+```text
+Register
+   ↓
+Login
+   ↓
+Citizen Dashboard
+   ├── Report Issue
+   │      ↓
+   │   Complaint Created
+   │      ↓
+   │   Track Status
+   │
+   └── Request Pickup
+          ↓
+       Booking Created
+          ↓
+       Track Status
+```
+
+## Admin Workflow
+
+```text
+Admin Login
+   ↓
+Admin Dashboard
+   ├── View Citizens
+   ├── Manage Complaints
+   ├── Manage Pickups
+   └── View Analytics
+```
+
+---
+
+# 🏗️ System Architecture
+
+```text
+                         ┌─────────────────────┐
+                         │      EcoCare        │
+                         │   React Frontend    │
+                         └──────────┬──────────┘
+                                    │
+                                  HTTP
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │   Express.js API    │
+                         │    Node.js Server   │
+                         └──────────┬──────────┘
+                                    │
+                         ┌──────────┴──────────┐
+                         │                     │
+                         ▼                     ▼
+                  ┌─────────────┐       ┌─────────────┐
+                  │ JWT Auth &  │       │ REST API    │
+                  │ Authorization│      │ Controllers │
+                  └─────────────┘       └──────┬──────┘
+                                               │
+                                               ▼
+                                      ┌─────────────────┐
+                                      │     MongoDB     │
+                                      │    Database     │
+                                      └─────────────────┘
+```
+
+---
+
+# 🧰 Technology Stack
+
+## Frontend
+
+| Technology | Purpose |
+|---|---|
+| React | User interface |
+| React Router | Client-side routing |
+| CSS | Responsive styling |
+| JavaScript | Application logic |
+| Fetch API | Backend API communication |
+
+## Backend
+
+| Technology | Purpose |
+|---|---|
+| Node.js | Server runtime |
+| Express.js | REST API framework |
+| Mongoose | MongoDB object modeling |
+| JWT | Authentication |
+| bcryptjs | Password hashing |
+| CORS | Cross-origin communication |
+| dotenv | Environment configuration |
+| Multer | File-upload capability/package |
+
+## Database
+
+```text
 MongoDB
-Mongoose
-Development Tools
-VS Code
-Git
-GitHub
-Postman
-Nodemon
-🏗️ Project Structure
-EcoCare/
-│
-├── backend/
-│   │
-│   ├── config/
-│   │   └── db.js
-│   │
-│   ├── controllers/
-│   │   ├── analyticsController.js
-│   │   ├── authController.js
-│   │   ├── complaintController.js
-│   │   ├── pickupController.js
-│   │   └── userController.js
-│   │
-│   ├── middleware/
-│   │   ├── adminMiddleware.js
-│   │   └── authMiddleware.js
-│   │
-│   ├── models/
-│   │   ├── Complaint.js
-│   │   ├── Pickup.js
-│   │   └── User.js
-│   │
-│   ├── routes/
-│   │   ├── analyticsRoutes.js
-│   │   ├── authRoutes.js
-│   │   ├── complaintRoutes.js
-│   │   ├── pickupRoutes.js
-│   │   └── userRoutes.js
-│   │
-│   ├── .env
-│   ├── adminSeeder.js
-│   ├── promoteAdmin.js
-│   ├── package.json
-│   └── server.js
+```
+
+## Development Tools
+
+- Visual Studio Code
+- Git
+- GitHub
+- Postman
+- npm
+- Nodemon
+
+---
+
+# 📁 Project Structure
+
+```text
+waste-management/
 │
 ├── src/
-│   │
-│   ├── admin/
-│   │   ├── AdminAnalytics.jsx
-│   │   ├── AdminComplaints.jsx
-│   │   ├── AdminDashboard.jsx
-│   │   ├── AdminPickups.jsx
-│   │   └── AdminUsers.jsx
-│   │
 │   ├── components/
-│   │   ├── ComplaintCard.jsx
+│   │   ├── Navbar.jsx
 │   │   ├── Footer.jsx
-│   │   └── Navbar.jsx
+│   │   └── ComplaintCard.jsx
 │   │
 │   ├── pages/
-│   │   ├── Awareness.jsx
-│   │   ├── ComplaintDetails.jsx
-│   │   ├── Complaints.jsx
-│   │   ├── Dashboard.jsx
 │   │   ├── Home.jsx
 │   │   ├── Login.jsx
-│   │   ├── PickupRequest.jsx
 │   │   ├── Register.jsx
-│   │   └── ReportIssue.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── ReportIssue.jsx
+│   │   ├── PickupRequest.jsx
+│   │   ├── Complaints.jsx
+│   │   ├── ComplaintDetails.jsx
+│   │   ├── Awareness.jsx
+│   │   └── AdminLogin.jsx
+│   │
+│   ├── admin/
+│   │   ├── AdminDashboard.jsx
+│   │   ├── AdminAnalytics.jsx
+│   │   ├── AdminComplaints.jsx
+│   │   ├── AdminPickups.jsx
+│   │   └── AdminUsers.jsx
 │   │
 │   ├── App.jsx
 │   ├── App.css
 │   ├── index.css
 │   └── main.jsx
 │
+├── backend/
+│   ├── config/
+│   │   └── db.js
+│   │
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── complaintController.js
+│   │   ├── pickupController.js
+│   │   ├── userController.js
+│   │   └── analyticsController.js
+│   │
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   └── adminMiddleware.js
+│   │
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Complaint.js
+│   │   └── Pickup.js
+│   │
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── complaintRoutes.js
+│   │   ├── pickupRoutes.js
+│   │   ├── userRoutes.js
+│   │   └── analyticsRoutes.js
+│   │
+│   ├── .env
+│   ├── package.json
+│   └── server.js
+│
 ├── .gitignore
 ├── package.json
 └── README.md
-🔄 Application Workflow
-👤 Citizen Workflow
-Register
-   ↓
-Login
-   ↓
-Citizen Dashboard
-   ↓
- ┌──────────────────────┐
- │                      │
-Report Issue       Request Pickup
- │                      │
- ↓                      ↓
-Complaint Created   Booking Created
- │                      │
- ↓                      ↓
-Admin Processing    Admin Processing
- │                      │
- ↓                      ↓
-Status Updated      Status Updated
- │                      │
- └──────────┬───────────┘
-            ↓
-       Citizen Tracks
-          Activity
-👨‍💼 Admin Workflow
-Admin Login
-     ↓
-Admin Dashboard
-     ↓
- ┌───────────┬────────────┬─────────────┐
- │           │            │
-Complaints  Pickups    Citizens
- │           │            │
- ↓           ↓            ↓
-Manage      Manage       View
-Status      Status       Activity
- │           │
- └──────┬────┘
-        ↓
-     Analytics
-🌐 REST API
+```
+
+> **Note:** `.env` files are excluded from GitHub using `.gitignore` and should be created locally.
+
+---
+
+# 🗄️ Database Design
+
+EcoCare uses MongoDB with Mongoose models.
+
+## 👤 User Model
+
+Main fields:
+
+```text
+_id
+name
+email
+phone
+password
+role
+createdAt
+updatedAt
+```
+
+### Role Values
+
+```text
+user
+admin
+```
+
+---
+
+## 📢 Complaint Model
+
+Main fields:
+
+```text
+_id
+user
+title
+description
+location
+category
+status
+image
+createdAt
+updatedAt
+```
+
+### Category Values
+
+```text
+Garbage Collection
+Waste Dumping
+Dirty Area
+Blocked Drain
+Other
+```
+
+### Status Values
+
+```text
+Pending
+In Progress
+Resolved
+Rejected
+```
+
+---
+
+## 🚛 Pickup Model
+
+Main fields:
+
+```text
+_id
+user
+bookingId
+wasteType
+quantity
+pickupDate
+pickupTime
+addressType
+fullName
+phone
+address
+instructions
+status
+createdAt
+updatedAt
+```
+
+### Waste Type Values
+
+```text
+Organic Waste
+Dry Recyclables
+E-Waste
+Bulk Waste
+```
+
+### Status Values
+
+```text
+Scheduled
+In Progress
+Completed
+Cancelled
+```
+
+---
+
+# 🔌 REST API
 
 Base URL:
 
+```text
 http://localhost:5000/api
+```
 
-🔐 Authentication
-Register
+---
 
-POST /auth/register
+## 🔐 Authentication APIs
 
-Login
+### Register
 
-POST /auth/login
+```http
+POST /api/auth/register
+```
 
-📢 Complaints
-Create Complaint
+Used to create a new citizen account.
 
-POST /complaints
+### Login
 
-Get My Complaints
+```http
+POST /api/auth/login
+```
 
-GET /complaints/my
+Used to authenticate a user and receive a JWT token.
 
-Get All Complaints
+---
 
-GET /complaints
+## 📢 Complaint APIs
 
-Admin only
+### Create Complaint
 
-Update Complaint Status
+```http
+POST /api/complaints
+```
 
-PATCH /complaints/:id/status
+Authentication:
 
-Admin only
+```text
+Bearer Token Required
+```
 
-🚛 Pickups
-Create Pickup
+### Get My Complaints
 
-POST /pickups
+```http
+GET /api/complaints/my
+```
 
-Get My Pickups
+Authentication:
 
-GET /pickups/my
+```text
+Bearer Token Required
+```
 
-Get All Pickups
+### Get All Complaints
 
-GET /pickups
+```http
+GET /api/complaints
+```
 
-Admin only
+Access:
 
-Update Pickup Status
+```text
+Admin Only
+```
 
-PATCH /pickups/:id/status
+### Update Complaint Status
 
-Admin only
+```http
+PATCH /api/complaints/:id/status
+```
 
-👥 Citizens
-Get Citizens
+Access:
 
-GET /users/citizens
+```text
+Admin Only
+```
 
-Admin only
+---
 
-📊 Analytics
-Get Analytics
+## 🚛 Pickup APIs
 
-GET /analytics
+### Create Pickup Request
 
-Admin only
+```http
+POST /api/pickups
+```
 
-🗄️ Database
+Authentication:
 
-EcoCare uses MongoDB with Mongoose.
+```text
+Bearer Token Required
+```
 
-Main collections/models include:
+### Get My Pickups
 
-User
+```http
+GET /api/pickups/my
+```
 
-Stores:
+Authentication:
 
-Name
-Email
-Phone
-Password
-Role
-Timestamps
-Complaint
+```text
+Bearer Token Required
+```
 
-Stores:
+### Get All Pickups
 
-User
-Title
-Description
-Location
-Category
-Status
-Image field
-Timestamps
-Pickup
+```http
+GET /api/pickups
+```
 
-Stores:
+Access:
 
-User
-Booking ID
-Waste type
-Quantity
-Pickup date
-Pickup time
-Address information
-Phone
-Instructions
-Status
-Timestamps
-💻 Installation
-1. Clone the Repository
-git clone https://github.com/Abhaypatel001/EcoCare.git
-2. Navigate to the Project
-cd EcoCare
-3. Install Frontend Dependencies
-npm install
-4. Install Backend Dependencies
-cd backend
-npm install
-🍃 MongoDB Setup
+```text
+Admin Only
+```
 
-EcoCare requires MongoDB.
+### Update Pickup Status
 
-For local MongoDB installation, make sure MongoDB is running on:
+```http
+PATCH /api/pickups/:id/status
+```
 
-mongodb://127.0.0.1:27017
+Access:
 
-The project database is:
+```text
+Admin Only
+```
 
-ecocare
-🔑 Environment Variables
+---
 
-Create a .env file inside the backend folder.
+## 👥 Citizen API
 
-PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/ecocare
-JWT_SECRET=your_secret_key
-Important
+### Get Citizens
 
-Do not upload .env to GitHub.
+```http
+GET /api/users/citizens
+```
 
-The project .gitignore already excludes environment files.
+Access:
 
-▶️ Running the Project
-Start Backend
+```text
+Admin Only
+```
 
-Open a terminal:
+This endpoint returns citizen information along with complaint and pickup counts.
 
-cd backend
-npm run dev
+---
 
-Backend will run on:
+## 📊 Analytics API
 
-http://localhost:5000
-Start Frontend
+### Get Analytics
 
-Open another terminal from the project root:
+```http
+GET /api/analytics
+```
 
-npm run dev
+Access:
 
-Frontend will normally run on:
+```text
+Admin Only
+```
 
-http://localhost:5173
-🧪 API Testing
+The endpoint returns citizen, complaint, and pickup statistics.
 
-The backend APIs can be tested using Postman.
+---
+
+# 🧪 API Testing
+
+The backend APIs can be tested using **Postman**.
 
 Recommended testing order:
 
+```text
 1. Register
-POST /api/auth/register
+      ↓
 2. Login
-POST /api/auth/login
+      ↓
+3. Copy JWT Token
+      ↓
+4. Add Bearer Token in Authorization
+      ↓
+5. Create Complaint / Pickup
+      ↓
+6. Test Citizen APIs
+      ↓
+7. Login as Admin
+      ↓
+8. Test Admin APIs
+```
 
-Copy the returned JWT token.
+For protected APIs, use:
 
-3. Add Authorization
+```text
+Authorization
+→ Bearer Token
+→ <JWT_TOKEN>
+```
 
-For protected APIs use:
+---
 
-Authorization: Bearer <your_token>
-4. Test Protected APIs
+# ⚙️ Installation
 
-Examples:
+## 1. Clone Repository
 
-GET /api/complaints/my
-POST /api/complaints
-GET /api/pickups/my
+```bash
+git clone https://github.com/Abhaypatel001/EcoCare.git
+```
 
-Admin users can additionally test:
+## 2. Open Project
 
-GET /api/complaints
-GET /api/pickups
-GET /api/users/citizens
-GET /api/analytics
-📱 Responsive Design
+```bash
+cd EcoCare
+```
 
-EcoCare is designed to work across different screen sizes.
+## 3. Install Frontend Dependencies
 
-Supported layouts include:
+```bash
+npm install
+```
 
-💻 Desktop
-💻 Laptop
-📱 Tablet
-📱 Mobile
+## 4. Install Backend Dependencies
 
-The navigation system, dashboards, cards, forms, and management sections are designed with responsive CSS.
+```bash
+cd backend
+npm install
+```
 
-🔮 Future Enhancements
+---
 
-Possible future improvements include:
+# 🔑 Environment Variables
 
-📍 GPS-based waste reporting
-🗺️ Interactive waste-location maps
-📸 Complete image upload support
-🔔 Real-time notifications
-📱 Progressive Web App support
-📊 Advanced analytics and charts
-🤖 AI-based waste classification
-♻️ Smart waste segregation recommendations
-💳 Online payment support for paid services
-🚚 Real-time pickup tracking
-📧 Email notifications
-📲 SMS notifications
-🌐 Multi-language support
-☁️ Cloud deployment
-🔎 Advanced complaint search and filtering
-📌 Project Status
-Module	Status
-User Registration	✅ Completed
-User Login	✅ Completed
-JWT Authentication	✅ Completed
-Role-Based Authorization	✅ Completed
-Citizen Dashboard	✅ Completed
-Complaint Reporting	✅ Completed
-Complaint Tracking	✅ Completed
-Admin Complaint Management	✅ Completed
-Waste Pickup Request	✅ Completed
-Pickup Status Management	✅ Completed
-Citizen Management	✅ Completed
-Admin Analytics	✅ Completed
-Awareness Section	✅ Completed
-Responsive UI	✅ Completed
-REST API	✅ Completed
-MongoDB Integration	✅ Completed
-Postman API Testing	✅ Completed
-🔄 Git Workflow
+Create:
+
+```text
+backend/.env
+```
+
+Add:
+
+```env
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/ecocare
+JWT_SECRET=your_secure_jwt_secret
+```
+
+### Environment Variable Description
+
+| Variable | Purpose |
+|---|---|
+| `PORT` | Backend server port |
+| `MONGO_URI` | MongoDB connection string |
+| `JWT_SECRET` | Secret key used for JWT authentication |
+
+> Never publish real passwords, database credentials, API keys, or JWT secrets to GitHub.
+
+---
+
+# ▶️ Running the Project
+
+The frontend and backend should run in separate terminals.
+
+## Terminal 1 — Backend
+
+From the project root:
+
+```bash
+cd backend
+npm run dev
+```
+
+Backend will run on:
+
+```text
+http://localhost:5000
+```
+
+You should see messages similar to:
+
+```text
+EcoCare backend running on http://localhost:5000
+MongoDB Connected
+```
+
+---
+
+## Terminal 2 — Frontend
+
+From the project root:
+
+```bash
+npm run dev
+```
+
+Vite will provide the frontend URL, normally:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# 📱 Responsive Design
+
+EcoCare is designed to work across:
+
+- 💻 Desktop
+- 💻 Laptop
+- 📱 Mobile
+- 📟 Tablet
+
+The interface adapts navigation, cards, forms, tables, dashboards, and content sections according to screen size.
+
+---
+
+# 📚 Awareness Module
+
+EcoCare also contains an awareness section designed to encourage responsible waste-management practices.
+
+Topics can include:
+
+- Waste segregation
+- Recycling
+- Responsible disposal
+- E-waste awareness
+- Clean surroundings
+- Sustainable habits
+
+The awareness module is intended to complement the application's operational features with educational content.
+
+---
+
+# 🚀 Future Enhancements
+
+The following features can be added in future versions:
+
+- 📍 Live GPS-based pickup tracking
+- 🗺️ Interactive waste-location maps
+- 🔔 Email and SMS notifications
+- 📲 Push notifications
+- 🤖 AI-based complaint categorization
+- 🤖 AI-powered waste classification
+- 📷 Image-based waste detection
+- 📈 Advanced analytics and charts
+- 🏆 Citizen reward and points system
+- ♻️ Recycling partner integration
+- 💳 Online payment support for applicable services
+- 📱 Progressive Web App (PWA)
+- ☁️ Cloud deployment
+- 🐳 Docker support
+- 🧪 Automated unit and integration testing
+- 📁 Complete image/file upload workflow for complaints
+
+---
+
+# 📌 Project Status
+
+```text
+EcoCare
+│
+├── Citizen Authentication        ✅
+├── Admin Authentication          ✅
+├── Citizen Dashboard             ✅
+├── Complaint Management          ✅
+├── Complaint Status Tracking     ✅
+├── Waste Pickup Management       ✅
+├── Pickup Status Tracking        ✅
+├── Citizen Management            ✅
+├── Admin Dashboard               ✅
+├── Analytics                     ✅
+├── Search & Filtering            ✅
+├── Awareness Module              ✅
+├── Responsive UI                 ✅
+├── REST APIs                     ✅
+├── MongoDB Integration           ✅
+├── JWT Authentication            ✅
+├── Role-Based Authorization      ✅
+└── GitHub Repository             ✅
+```
+
+---
+
+# 🔄 Git and GitHub Workflow
 
 After making changes:
 
+```bash
 git add .
-
-Commit your changes:
-
 git commit -m "Update EcoCare"
-
-Push to GitHub:
-
 git push
+```
 
-Repository:
+Check repository status:
 
-EcoCare
+```bash
+git status
+```
 
-🤝 Contributing
+View commit history:
+
+```bash
+git log --oneline
+```
+
+---
+
+# 🌐 Repository
+
+GitHub Repository:
+
+**EcoCare**
+
+```text
+https://github.com/Abhaypatel001/EcoCare
+```
+
+---
+
+# 🤝 Contributing
 
 Contributions are welcome.
 
-To contribute:
+### Contribution Steps
 
-Fork the repository
-Create a new branch
-Make your changes
-Test the application
-Commit your changes
-Push the branch
-Create a Pull Request
-👨‍💻 Developer
+1. Fork the repository.
+2. Create a new branch.
 
-Developed by Abhay Patel
+```bash
+git checkout -b feature/new-feature
+```
 
-GitHub:
+3. Make your changes.
+4. Test the application.
+5. Commit your changes.
 
-https://github.com/Abhaypatel001
+```bash
+git add .
+git commit -m "Add new feature"
+```
 
-Project Repository:
+6. Push your branch.
 
-https://github.com/Abhaypatel001/EcoCare
+```bash
+git push origin feature/new-feature
+```
 
-📄 License
+7. Create a Pull Request.
 
-This project is developed for educational and project-development purposes.
+---
 
-You may modify and extend the project according to your requirements.
+# 🔒 Security Considerations
 
-🌱 EcoCare
+EcoCare follows several basic security practices:
 
-Smart Waste Management for Cleaner Communities.
+- Password hashing with bcryptjs.
+- JWT-based authentication.
+- Protected backend routes.
+- Admin-only authorization.
+- Environment variables for sensitive configuration.
+- `.env` excluded from Git.
+- MongoDB validation through Mongoose schemas.
+- Role-based access control.
 
-Report. Manage. Track. Clean. ♻️
+### Important
+
+Never commit:
+
+```text
+.env
+```
+
+or any file containing:
+
+```text
+Database passwords
+JWT secrets
+API keys
+Private credentials
+```
+
+---
+
+# 👨‍💻 Developer
+
+## Abhay Patel
+
+**Full-Stack Developer | MERN Stack**
+
+Project:
+
+> **EcoCare — Smart Waste Management System**
+
+Technologies used:
+
+```text
+React
+Node.js
+Express.js
+MongoDB
+Mongoose
+JWT
+bcryptjs
+REST API
+Git
+GitHub
+Postman
+```
+
+---
+
+# 📄 License
+
+This project is licensed under the **MIT License**.
+
+You are free to use, modify, and distribute the project according to the terms of the license.
+
+---
+
+# 🌍 Vision
+
+EcoCare aims to demonstrate how modern web technologies can be used to build practical digital solutions for cleaner communities and more organized waste-management services.
+
+The long-term vision is to evolve EcoCare into a complete smart waste-management ecosystem connecting:
+
+```text
+Citizens
+    ↕
+EcoCare Platform
+    ↕
+Waste Management Teams
+    ↕
+Recycling & Collection Services
+```
+
+---
+
+<p align="center">
+  <strong>🌱 EcoCare — Building a Cleaner and Smarter Future</strong>
+</p>
+
+<p align="center">
+  Made with ❤️ using the MERN Stack
+</p>
