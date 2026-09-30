@@ -179,7 +179,7 @@ function PickupRequest() {
       setLoading(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/pickups",
+        "https://ecocare-backend-zhgx.onrender.com/api/pickups",
         {
           method: "POST",
 

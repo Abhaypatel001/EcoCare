@@ -81,7 +81,7 @@ function Dashboard() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/complaints/my",
+        "https://ecocare-backend-zhgx.onrender.com/api/complaints/my",
         {
           method: "GET",
           headers: {
@@ -171,7 +171,7 @@ function Dashboard() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/pickups/my",
+        "https://ecocare-backend-zhgx.onrender.com/api/pickups/my",
         {
           method: "GET",
           headers: {

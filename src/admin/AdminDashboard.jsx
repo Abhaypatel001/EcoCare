@@ -87,7 +87,7 @@ function AdminDashboard() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/complaints",
+        "https://ecocare-backend-zhgx.onrender.com/api/complaints",
         {
           method: "GET",
           headers: {
@@ -142,7 +142,7 @@ function AdminDashboard() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/pickups",
+        "https://ecocare-backend-zhgx.onrender.com/api/pickups",
         {
           method: "GET",
           headers: {
@@ -193,7 +193,7 @@ function AdminDashboard() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/users/citizens",
+        "https://ecocare-backend-zhgx.onrender.com/api/users/citizens",
         {
           method: "GET",
           headers: {
@@ -244,7 +244,7 @@ function AdminDashboard() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/analytics",
+        "https://ecocare-backend-zhgx.onrender.com/api/analytics",
         {
           method: "GET",
           headers: {
@@ -337,7 +337,7 @@ function AdminDashboard() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/complaints/${complaintId}/status`,
+        `https://ecocare-backend-zhgx.onrender.com/api/complaints/${complaintId}/status`,
         {
           method: "PATCH",
           headers: {
@@ -414,7 +414,7 @@ function AdminDashboard() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/pickups/${pickupId}/status`,
+        `https://ecocare-backend-zhgx.onrender.com/api/pickups/${pickupId}/status`,
         {
           method: "PATCH",
           headers: {

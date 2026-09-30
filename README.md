@@ -756,7 +756,7 @@ Cancelled
 Base URL:
 
 ```text
-http://localhost:5000/api
+https://ecocare-backend-zhgx.onrender.com/api
 ```
 
 ---
@@ -1028,13 +1028,13 @@ npm run dev
 Backend will run on:
 
 ```text
-http://localhost:5000
+https://ecocare-backend-zhgx.onrender.com
 ```
 
 You should see messages similar to:
 
 ```text
-EcoCare backend running on http://localhost:5000
+EcoCare backend running on https://ecocare-backend-zhgx.onrender.com
 MongoDB Connected
 ```
 
