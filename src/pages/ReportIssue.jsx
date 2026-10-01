@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -15,7 +14,6 @@ import {
   Navigation,
   FileText,
   Sparkles,
-  LocateFixed,
 } from "lucide-react";
 
 import {
@@ -98,7 +96,6 @@ function LocationPicker({ onLocationSelect }) {
   useMapEvents({
     click(event) {
       const { lat, lng } = event.latlng;
-
       onLocationSelect(lat, lng);
     },
   });
@@ -120,13 +117,20 @@ function ReportIssue() {
     address: "",
     landmark: "",
     priority: "Medium",
-
-    // REAL LOCATION DATA
     latitude: null,
     longitude: null,
   });
 
+  // ==========================================
+  // IMAGE STATES
+  // ==========================================
+
+  // Preview URL
   const [image, setImage] = useState(null);
+
+  // Actual File object
+  const [imageFile, setImageFile] = useState(null);
+
   const [imageName, setImageName] = useState("");
 
   const [detectingLocation, setDetectingLocation] =
@@ -156,20 +160,61 @@ function ReportIssue() {
   };
 
   // ==========================================
-  // IMAGE
+  // IMAGE UPLOAD
   // ==========================================
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
 
-    if (file) {
-      setImage(URL.createObjectURL(file));
-      setImageName(file.name);
+    if (!file) return;
+
+    // ==========================================
+    // IMAGE TYPE VALIDATION
+    // ==========================================
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file.");
+      return;
     }
+
+    // ==========================================
+    // 5 MB LIMIT
+    // Backend multer bhi 5 MB limit rakhta hai
+    // ==========================================
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size must be less than 5 MB.");
+      return;
+    }
+
+    // ==========================================
+    // STORE ACTUAL FILE
+    // ==========================================
+
+    setImageFile(file);
+
+    // ==========================================
+    // CREATE PREVIEW
+    // ==========================================
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setImage(previewUrl);
+
+    setImageName(file.name);
   };
 
+  // ==========================================
+  // REMOVE IMAGE
+  // ==========================================
+
   const removeImage = () => {
+    if (image) {
+      URL.revokeObjectURL(image);
+    }
+
     setImage(null);
+    setImageFile(null);
     setImageName("");
   };
 
@@ -236,9 +281,7 @@ function ReportIssue() {
 
       setFormData((prev) => ({
         ...prev,
-
         address,
-
         latitude,
         longitude,
       }));
@@ -342,13 +385,42 @@ function ReportIssue() {
 
     if (submitting) return;
 
-    // Require location
+    // ==========================================
+    // REQUIRE IMAGE
+    // ==========================================
+
+    if (!imageFile) {
+      alert(
+        "Please upload a clear waste image for AI verification."
+      );
+
+      return;
+    }
+
+    // ==========================================
+    // REQUIRE LOCATION
+    // ==========================================
+
     if (
-      !formData.latitude ||
-      !formData.longitude
+      formData.latitude === null ||
+      formData.latitude === undefined ||
+      formData.longitude === null ||
+      formData.longitude === undefined
     ) {
       alert(
         "Please detect or select the waste location before submitting."
+      );
+
+      return;
+    }
+
+    // ==========================================
+    // REQUIRE DESCRIPTION
+    // ==========================================
+
+    if (!formData.description.trim()) {
+      alert(
+        "Please provide a description of the waste issue."
       );
 
       return;
@@ -358,9 +430,7 @@ function ReportIssue() {
       setSubmitting(true);
 
       const token =
-        localStorage.getItem(
-          "ecocare_token"
-        ) ||
+        localStorage.getItem("ecocare_token") ||
         localStorage.getItem("token");
 
       if (!token) {
@@ -374,74 +444,129 @@ function ReportIssue() {
       }
 
       // ==========================================
-      // FRONTEND COMPLAINT DATA
+      // CATEGORY MAPPING
       // ==========================================
 
-      const complaintData = {
-        title:
-          formData.title ||
-          formData.issueType,
+      const mappedCategory =
+        formData.issueType ===
+        "Uncollected Waste"
+          ? "Garbage Collection"
+          : formData.issueType ===
+            "Illegal Dumping"
+          ? "Waste Dumping"
+          : formData.issueType ===
+            "Plastic Waste"
+          ? "Other"
+          : formData.issueType ===
+            "Organic Waste"
+          ? "Dirty Area"
+          : formData.issueType ===
+            "Hazardous Waste"
+          ? "Other"
+          : formData.issueType ===
+            "Construction Waste"
+          ? "Other"
+          : "Other";
 
-        description:
-          formData.description,
+      // ==========================================
+      // FORM DATA
+      // ==========================================
+      // IMPORTANT:
+      // JSON.stringify() nahi karna.
+      // Image ke liye multipart/form-data use hoga.
 
-        // Current backend still receives address
-        location:
-          formData.address,
+      const formDataToSend = new FormData();
 
-        // NEW REAL LOCATION DATA
-        latitude:
-          formData.latitude,
+      formDataToSend.append(
+        "title",
+        formData.title ||
+          formData.issueType
+      );
 
-        longitude:
-          formData.longitude,
+      formDataToSend.append(
+        "description",
+        formData.description
+      );
 
-        landmark:
-          formData.landmark,
+      formDataToSend.append(
+        "location",
+        formData.address
+      );
 
-        category:
-          formData.issueType ===
-          "Uncollected Waste"
-            ? "Garbage Collection"
-            : formData.issueType ===
-              "Illegal Dumping"
-            ? "Waste Dumping"
-            : formData.issueType ===
-              "Plastic Waste"
-            ? "Other"
-            : formData.issueType ===
-              "Organic Waste"
-            ? "Dirty Area"
-            : formData.issueType ===
-              "Hazardous Waste"
-            ? "Other"
-            : formData.issueType ===
-              "Construction Waste"
-            ? "Other"
-            : "Other",
-      };
+      formDataToSend.append(
+        "latitude",
+        String(formData.latitude)
+      );
+
+      formDataToSend.append(
+        "longitude",
+        String(formData.longitude)
+      );
+
+      formDataToSend.append(
+        "landmark",
+        formData.landmark || ""
+      );
+
+      formDataToSend.append(
+        "category",
+        mappedCategory
+      );
+
+      // ==========================================
+      // ACTUAL IMAGE FILE
+      // ==========================================
+
+      formDataToSend.append(
+        "image",
+        imageFile
+      );
+
+      // ==========================================
+      // DEBUG
+      // ==========================================
 
       console.log(
         "================================="
       );
 
       console.log(
-        "SUBMITTING COMPLAINT"
+        "SUBMITTING AI VERIFIED COMPLAINT"
       );
 
       console.log(
-        "Complaint Data:",
-        complaintData
+        "Title:",
+        formData.title ||
+          formData.issueType
       );
 
       console.log(
-        "REAL LATITUDE:",
+        "Location:",
+        formData.address
+      );
+
+      console.log(
+        "Latitude:",
         formData.latitude
       );
 
       console.log(
-        "REAL LONGITUDE:",
+        "Longitude:",
         formData.longitude
+      );
+
+      console.log(
+        "Image:",
+        imageFile.name
+      );
+
+      console.log(
+        "Image Size:",
+        (
+          imageFile.size /
+          (1024 * 1024)
+        ).toFixed(2),
+        "MB"
       );
 
       console.log(
@@ -458,18 +583,21 @@ function ReportIssue() {
           method: "POST",
 
           headers: {
-            "Content-Type":
-              "application/json",
+            // IMPORTANT:
+            // Content-Type manually MAT lagana.
+            // Browser automatically multipart boundary set karega.
 
             Authorization:
               `Bearer ${token}`,
           },
 
-          body: JSON.stringify(
-            complaintData
-          ),
+          body: formDataToSend,
         }
       );
+
+      // ==========================================
+      // RESPONSE
+      // ==========================================
 
       const data =
         await response.json();
@@ -483,11 +611,66 @@ function ReportIssue() {
         !response.ok ||
         !data.success
       ) {
+        // AI rejected image
+        if (
+          data.aiVerification?.status ===
+          "Rejected"
+        ) {
+          throw new Error(
+            data.message ||
+              "AI verification rejected this image. Please upload a clear waste image."
+          );
+        }
+
         throw new Error(
           data.message ||
             "Failed to submit complaint"
         );
       }
+
+      // ==========================================
+      // AI RESULT
+      // ==========================================
+
+      const aiVerification =
+        data.aiVerification;
+
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "AI VERIFICATION RESULT"
+      );
+
+      console.log(
+        "Waste:",
+        aiVerification?.isWaste
+      );
+
+      console.log(
+        "Confidence:",
+        aiVerification?.confidence
+      );
+
+      console.log(
+        "Category:",
+        aiVerification?.category
+      );
+
+      console.log(
+        "Status:",
+        aiVerification?.status
+      );
+
+      console.log(
+        "Explanation:",
+        aiVerification?.explanation
+      );
+
+      console.log(
+        "================================="
+      );
 
       // ==========================================
       // TRACKING ID
@@ -498,19 +681,24 @@ function ReportIssue() {
         data.data?._id ||
         data._id;
 
+      // ==========================================
+      // NEW REPORT
+      // ==========================================
+
       const newReport = {
         id:
           complaintId ||
           `WM${Date.now()}`,
 
         title:
-          complaintData.title,
+          formData.title ||
+          formData.issueType,
 
         type:
-          complaintData.category,
+          formData.issueType,
 
         location:
-          complaintData.location,
+          formData.address,
 
         latitude:
           formData.latitude,
@@ -520,17 +708,24 @@ function ReportIssue() {
 
         date: "Just now",
 
+        // AI verified complaints start as Pending
         status: "Pending",
 
         priority:
           formData.priority,
 
         description:
-          complaintData.description,
+          formData.description,
 
         image:
-          image ||
-          "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80",
+          image,
+
+        // ========================================
+        // AI DATA
+        // ========================================
+
+        aiVerification:
+          aiVerification,
       };
 
       setSubmittedReport(
@@ -543,7 +738,7 @@ function ReportIssue() {
       });
 
       // ==========================================
-      // RESET
+      // RESET FORM
       // ==========================================
 
       setFormData({
@@ -566,6 +761,7 @@ function ReportIssue() {
       });
 
       setImage(null);
+      setImageFile(null);
       setImageName("");
     } catch (error) {
       console.error(
@@ -587,13 +783,13 @@ function ReportIssue() {
   // ==========================================
 
   const mapCenter =
-    formData.latitude &&
-    formData.longitude
+    formData.latitude !== null &&
+    formData.longitude !== null
       ? [
           formData.latitude,
           formData.longitude,
         ]
-      : [26.4499, 80.3319]; // Kanpur default view
+      : [26.4499, 80.3319];
 
   // ==========================================
   // UI
@@ -632,7 +828,6 @@ function ReportIssue() {
             </div>
 
             <div>
-
               <span className="header-eyebrow">
                 COMMUNITY CLEANLINESS
                 INITIATIVE
@@ -650,8 +845,8 @@ function ReportIssue() {
                 location, and track
                 resolution in real time.
               </p>
-
             </div>
+
           </div>
         </div>
 
@@ -692,6 +887,84 @@ function ReportIssue() {
                 .
               </p>
 
+              {/* AI RESULT */}
+
+              {submittedReport.aiVerification && (
+                <div
+                  style={{
+                    marginTop: "18px",
+                    padding: "14px 16px",
+                    borderRadius: "12px",
+                    background:
+                      submittedReport
+                        .aiVerification
+                        .status ===
+                      "Approved"
+                        ? "#ecfdf3"
+                        : "#fffaeb",
+                    border:
+                      "1px solid #d0d5dd",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      fontWeight: "700",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    <Sparkles size={17} />
+
+                    AI Image Verification:{" "}
+                    {
+                      submittedReport
+                        .aiVerification
+                        .status
+                    }
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      color: "#475467",
+                    }}
+                  >
+                    Detected:{" "}
+                    {
+                      submittedReport
+                        .aiVerification
+                        .category
+                    }
+                    {" • "}
+                    Confidence:{" "}
+                    {Math.round(
+                      submittedReport
+                        .aiVerification
+                        .confidence *
+                        100
+                    )}
+                    %
+                  </div>
+
+                  <p
+                    style={{
+                      marginTop: "7px",
+                      marginBottom: 0,
+                      fontSize: "13px",
+                      color: "#475467",
+                    }}
+                  >
+                    {
+                      submittedReport
+                        .aiVerification
+                        .explanation
+                    }
+                  </p>
+                </div>
+              )}
+
               <div className="success-actions">
 
                 <Link
@@ -707,9 +980,7 @@ function ReportIssue() {
                 <button
                   type="button"
                   onClick={() =>
-                    setSubmittedReport(
-                      null
-                    )
+                    setSubmittedReport(null)
                   }
                   className="btn-new-report"
                 >
@@ -758,7 +1029,6 @@ function ReportIssue() {
 
                   {issueCategories.map(
                     (cat) => {
-
                       const IconComp =
                         cat.icon;
 
@@ -783,7 +1053,6 @@ function ReportIssue() {
                             })
                           }
                         >
-
                           <div className="tile-icon-box">
                             <IconComp
                               size={20}
@@ -791,7 +1060,6 @@ function ReportIssue() {
                           </div>
 
                           <div className="tile-text">
-
                             <strong>
                               {cat.label}
                             </strong>
@@ -799,9 +1067,7 @@ function ReportIssue() {
                             <small>
                               {cat.desc}
                             </small>
-
                           </div>
-
                         </button>
                       );
                     }
@@ -825,11 +1091,43 @@ function ReportIssue() {
                   </h3>
 
                   <p>
-                    A clear photograph helps
-                    the sanitation team gauge
-                    the required equipment.
+                    AI will verify that the
+                    uploaded image actually
+                    contains waste-related
+                    evidence.
                   </p>
 
+                </div>
+
+                {/* AI INFO */}
+
+                <div
+                  style={{
+                    marginBottom: "16px",
+                    padding: "12px 14px",
+                    borderRadius: "12px",
+                    background: "#f0fdf4",
+                    border:
+                      "1px solid #bbf7d0",
+                    color: "#166534",
+                    fontSize: "13px",
+                  }}
+                >
+                  <strong>
+                    ✨ AI Image Verification
+                  </strong>
+
+                  <div
+                    style={{
+                      marginTop: "4px",
+                    }}
+                  >
+                    Unrelated images such as
+                    selfies, animals, vehicles,
+                    screenshots or random
+                    objects may be rejected
+                    automatically.
+                  </div>
                 </div>
 
                 {!image ? (
@@ -837,7 +1135,7 @@ function ReportIssue() {
 
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp,image/jpg"
                       onChange={
                         handleImageChange
                       }
@@ -857,8 +1155,7 @@ function ReportIssue() {
                       </h4>
 
                       <p>
-                        Supports JPG, PNG,
-                        WEBP up to 10MB
+                        JPG, PNG, WEBP up to 5MB
                       </p>
 
                       <span className="btn-choose-file">
@@ -894,7 +1191,6 @@ function ReportIssue() {
                       </button>
 
                     </div>
-
                   </div>
                 )}
 
@@ -972,7 +1268,6 @@ function ReportIssue() {
                           detectingLocation
                         }
                       >
-
                         <Navigation
                           size={14}
                           className={
@@ -987,12 +1282,9 @@ function ReportIssue() {
                             ? "Detecting GPS..."
                             : "📍 Detect My Location"}
                         </span>
-
                       </button>
 
                     </div>
-
-                    {/* ADDRESS */}
 
                     <div className="input-with-icon">
 
@@ -1016,88 +1308,61 @@ function ReportIssue() {
 
                     </div>
 
-                    {/* LOCATION ERROR */}
-
                     {locationError && (
                       <div
                         style={{
-                          marginTop:
-                            "10px",
-                          padding:
-                            "10px 12px",
-                          borderRadius:
-                            "10px",
-                          background:
-                            "#fff1f2",
-                          color:
-                            "#be123c",
-                          fontSize:
-                            "13px",
+                          marginTop: "10px",
+                          padding: "10px 12px",
+                          borderRadius: "10px",
+                          background: "#fff1f2",
+                          color: "#be123c",
+                          fontSize: "13px",
                         }}
                       >
                         {locationError}
                       </div>
                     )}
 
-                    {/* SUCCESS */}
-
                     {locationSuccess && (
                       <span className="location-success-text">
-
                         <CheckCircle2
                           size={13}
                         />
-
                         Real GPS location
                         captured
                         successfully!
-
                       </span>
                     )}
 
                   </div>
-
                 </div>
 
-                {/* ==================================
-                    MAP
-                ================================== */}
+                {/* MAP */}
 
                 <div
                   style={{
-                    marginTop:
-                      "18px",
-                    borderRadius:
-                      "16px",
-                    overflow:
-                      "hidden",
+                    marginTop: "18px",
+                    borderRadius: "16px",
+                    overflow: "hidden",
                     border:
                       "1px solid #d0d5dd",
-                    height:
-                      "360px",
-                    position:
-                      "relative",
+                    height: "360px",
+                    position: "relative",
                   }}
                 >
-
                   <MapContainer
                     center={mapCenter}
                     zoom={
-                      formData.latitude
+                      formData.latitude !== null
                         ? 17
                         : 12
                     }
-                    scrollWheelZoom={
-                      true
-                    }
+                    scrollWheelZoom={true}
                     style={{
-                      height:
-                        "100%",
-                      width:
-                        "100%",
+                      height: "100%",
+                      width: "100%",
                     }}
                   >
-
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -1109,20 +1374,17 @@ function ReportIssue() {
                       }
                     />
 
-                    {formData.latitude &&
-                      formData.longitude && (
+                    {formData.latitude !== null &&
+                      formData.longitude !== null && (
                         <Marker
                           position={[
                             formData.latitude,
                             formData.longitude,
                           ]}
                         >
-
                           <Popup>
-
                             <strong>
-                              EcoCare
-                              Report
+                              EcoCare Report
                               Location
                             </strong>
 
@@ -1130,81 +1392,59 @@ function ReportIssue() {
 
                             {formData.address ||
                               "Selected location"}
-
                           </Popup>
-
                         </Marker>
                       )}
-
                   </MapContainer>
-
-                  {/* MAP INSTRUCTION */}
 
                   {!formData.latitude && (
                     <div
                       style={{
-                        position:
-                          "absolute",
+                        position: "absolute",
                         top: "15px",
                         left: "50%",
                         transform:
                           "translateX(-50%)",
                         zIndex: 1000,
-                        background:
-                          "white",
-                        padding:
-                          "9px 14px",
-                        borderRadius:
-                          "10px",
+                        background: "white",
+                        padding: "9px 14px",
+                        borderRadius: "10px",
                         boxShadow:
                           "0 3px 12px rgba(0,0,0,.15)",
-                        fontSize:
-                          "13px",
-                        fontWeight:
-                          "600",
-                        whiteSpace:
-                          "nowrap",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      📍 Click on the map
-                      to select location
+                      📍 Click on the map to
+                      select location
                     </div>
                   )}
-
                 </div>
 
                 {/* COORDINATES */}
 
-                {formData.latitude &&
-                  formData.longitude && (
+                {formData.latitude !== null &&
+                  formData.longitude !== null && (
                     <div
                       style={{
-                        marginTop:
-                          "12px",
-                        padding:
-                          "12px 14px",
-                        borderRadius:
-                          "10px",
-                        background:
-                          "#f0fdf4",
+                        marginTop: "12px",
+                        padding: "12px 14px",
+                        borderRadius: "10px",
+                        background: "#f0fdf4",
                         border:
                           "1px solid #bbf7d0",
-                        fontSize:
-                          "13px",
-                        color:
-                          "#166534",
+                        fontSize: "13px",
+                        color: "#166534",
                       }}
                     >
-
                       <strong>
-                        📍 Location
-                        selected
+                        📍 Location selected
                       </strong>
 
                       <div
                         style={{
-                          marginTop:
-                            "5px",
+                          marginTop: "5px",
                         }}
                       >
                         Latitude:{" "}
@@ -1219,7 +1459,6 @@ function ReportIssue() {
                           6
                         )}
                       </div>
-
                     </div>
                   )}
 
@@ -1291,8 +1530,7 @@ function ReportIssue() {
                 <div className="sidebar-section-card">
 
                   <h4>
-                    Severity /
-                    Urgency
+                    Severity / Urgency
                   </h4>
 
                   <p className="sidebar-help-text">
@@ -1308,24 +1546,20 @@ function ReportIssue() {
                     {[
                       {
                         val: "Low",
-                        label:
-                          "Standard (48h)",
+                        label: "Standard (48h)",
                         color: "low",
                       },
                       {
                         val: "Medium",
-                        label:
-                          "Priority (24h)",
+                        label: "Priority (24h)",
                         color: "medium",
                       },
                       {
                         val: "Critical",
-                        label:
-                          "Emergency (4-6h)",
+                        label: "Emergency (4-6h)",
                         color: "high",
                       },
                     ].map((p) => (
-
                       <label
                         key={p.val}
                         className={`priority-select-item ${
@@ -1335,7 +1569,6 @@ function ReportIssue() {
                             : ""
                         }`}
                       >
-
                         <input
                           type="radio"
                           name="priority"
@@ -1354,7 +1587,6 @@ function ReportIssue() {
                         ></span>
 
                         <div>
-
                           <strong>
                             {p.val}
                           </strong>
@@ -1362,15 +1594,46 @@ function ReportIssue() {
                           <small>
                             {p.label}
                           </small>
-
                         </div>
-
                       </label>
-
                     ))}
 
                   </div>
+                </div>
 
+                {/* AI VERIFICATION INFO */}
+
+                <div
+                  className="sidebar-section-card"
+                  style={{
+                    border:
+                      "1px solid #bbf7d0",
+                    background: "#f0fdf4",
+                  }}
+                >
+                  <div className="card-badge-row">
+                    <Sparkles size={16} />
+
+                    <span>
+                      AI Image Verification
+                    </span>
+                  </div>
+
+                  <p>
+                    Your uploaded image will
+                    be analyzed automatically
+                    to verify that it contains
+                    waste-related evidence.
+                  </p>
+
+                  <div className="eco-points-preview">
+                    <CheckCircle2 size={16} />
+
+                    <span>
+                      Clear waste evidence
+                      helps speed up verification.
+                    </span>
+                  </div>
                 </div>
 
                 {/* ECO IMPACT */}
@@ -1389,21 +1652,17 @@ function ReportIssue() {
                   </div>
 
                   <p>
-                    All collected
-                    organic waste is
-                    processed at our
-                    bio-composting
-                    facility,
-                    diverting it from
-                    toxic open
+                    All collected organic
+                    waste is processed at
+                    our bio-composting
+                    facility, diverting it
+                    from toxic open
                     landfills.
                   </p>
 
                   <div className="eco-points-preview">
 
-                    <Sparkles
-                      size={16}
-                    />
+                    <Sparkles size={16} />
 
                     <span>
                       You'll earn{" "}
@@ -1422,49 +1681,37 @@ function ReportIssue() {
                 <button
                   type="submit"
                   className="btn-submit-report"
-                  disabled={
-                    submitting
-                  }
+                  disabled={submitting}
                 >
-
                   {submitting ? (
                     <span>
-                      Submitting...
+                      🤖 AI Verifying Image...
                     </span>
                   ) : (
                     <>
-                      <Send
-                        size={18}
-                      />
+                      <Send size={18} />
 
                       <span>
-                        Submit Waste
-                        Report
+                        Submit Waste Report
                       </span>
                     </>
                   )}
-
                 </button>
 
                 <p className="submit-disclaimer">
-                  By submitting, you
-                  confirm the accuracy
-                  of the location to
-                  assist municipal
-                  sanitation.
+                  Your image will be checked
+                  by AI before the complaint
+                  is registered.
                 </p>
 
               </div>
-
             </div>
 
           </form>
         )}
-
       </div>
     </div>
   );
 }
 
 export default ReportIssue;
-
