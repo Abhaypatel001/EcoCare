@@ -6873,3 +6873,589 @@ body {
     justify-content: center;
   }
 }
+
+/* =========================================================
+   ECOCARE - FULL RESPONSIVE LAYER
+   Mobile (320px+) · Tablet · Laptop · Desktop · Ultra-wide
+   -------------------------------------------------------
+   HOW TO USE:
+   1. Apni purani CSS file ke bilkul END mein paste karo
+      (ya alag file bana ke index.css ke baad import karo).
+   2. Purana "STICKY ECOCARE NAVBAR" block aur
+      "/* :root { --eco-900 ... .nb__ ..." wala dead block delete kar do.
+   Saare class names pehle jaise hi hain.
+   ========================================================= */
+
+/* ---------- 0. GLOBAL FLUID TOKENS ---------- */
+:root {
+  --page-gutter: clamp(24px, 5vw, 64px);
+  --container-max: 1240px;
+  --topbar-h: 56px;      /* topbar ki total height (padding included) */
+  --nav-gap: 10px;       /* sticky navbar ka top gap */
+  --nav-offset: 96px;    /* sticky sidebars / anchor offset */
+}
+
+html {
+  scroll-padding-top: var(--nav-offset);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-width: 320px;
+  overflow-x: clip;
+}
+
+img, svg, video, canvas, iframe {
+  max-width: 100%;
+}
+
+img, video { height: auto; }
+
+h1, h2, h3, h4, p, li, strong, span {
+  overflow-wrap: anywhere;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(22, 163, 74, 0.45);
+  outline-offset: 2px;
+}
+
+.home-container,
+.dashboard-container,
+.report-container,
+.pickup-container,
+.complaints-container,
+.details-container,
+.awareness-container,
+.admin-container {
+  width: min(var(--container-max), 100% - var(--page-gutter));
+}
+
+@media (min-width: 1600px) {
+  :root { --container-max: 1400px; }
+}
+
+@media (min-width: 2000px) {
+  :root { --container-max: 1560px; }
+  html { font-size: 112.5%; }
+}
+
+/* ---------- 1. PROFESSIONAL ECOCARE NAVBAR ---------- */
+
+.ecocare-navbar-wrapper {
+  position: sticky !important;
+  top: calc(var(--nav-gap) - var(--topbar-h)) !important; /* topbar scroll hoke chala jaye, navbar chipka rahe */
+  z-index: 9999 !important;
+  padding-bottom: var(--nav-gap);
+  pointer-events: none;
+}
+
+.ecocare-topbar,
+.ecocare-navbar {
+  pointer-events: auto;
+}
+
+.ecocare-topbar {
+  padding: 8px 20px;
+  height: var(--topbar-h);
+}
+
+.ecocare-topbar-inner {
+  max-width: 1330px;
+  height: 40px;
+  min-height: 0;
+}
+
+.ecocare-navbar {
+  transition: box-shadow 0.25s ease, background 0.25s ease;
+}
+
+/* Desktop: Sign in = clean outlined button, Report = solid CTA */
+.ecocare-signin-btn {
+  min-height: 44px;
+  padding: 0 18px;
+  justify-content: center;
+  color: #173b2a;
+  background: #ffffff;
+  border: 1.5px solid #cfe5d7;
+  border-radius: 30px;
+  transition: all 0.25s ease;
+}
+
+.ecocare-signin-btn:hover {
+  color: #15803d;
+  background: #f0f9f3;
+  border-color: #16a34a;
+  transform: translateY(-1px);
+}
+
+.ecocare-signin-btn:focus-visible,
+.ecocare-report-btn:focus-visible,
+.ecocare-nav-link:focus-visible,
+.ecocare-mobile-menu-btn:focus-visible {
+  outline: 3px solid rgba(22, 163, 74, 0.45);
+  outline-offset: 2px;
+}
+
+.ecocare-nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #86efac;
+  transform: translateX(-50%);
+}
+
+/* Laptop */
+@media (max-width: 1280px) {
+  .ecocare-navbar-inner { padding: 8px 16px; }
+  .ecocare-nav-link { padding: 11px 11px; font-size: 13.5px; }
+  .ecocare-signin-btn { padding: 0 14px; }
+}
+
+/* Small laptop / large tablet */
+@media (max-width: 1150px) {
+  .ecocare-user-info { display: none; }
+  .ecocare-user-box { padding: 4px; }
+  .ecocare-signin-btn { padding: 0 13px; font-size: 13px; }
+}
+
+/* Tablet + Mobile: links hide, Sign in + hamburger VISIBLE rahenge */
+@media (max-width: 950px) {
+  :root { --topbar-h: 52px; }
+
+  .ecocare-topbar { padding: 8px 14px; }
+  .ecocare-topbar-inner { height: 36px; }
+
+  .ecocare-navbar-inner {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ecocare-desktop-nav { display: none; }
+
+  .ecocare-navbar-actions {
+    display: flex !important;
+    margin-left: auto;
+    gap: 8px;
+  }
+
+  .ecocare-report-btn,
+  .ecocare-admin-btn,
+  .ecocare-logout-btn,
+  .ecocare-user-info { display: none; }
+
+  .ecocare-user-box { padding: 4px; background: #f3faf5; }
+
+  .ecocare-signin-btn {
+    min-height: 42px;
+    padding: 0 16px;
+    color: #ffffff;
+    background: #16a34a;
+    border-color: #16a34a;
+    box-shadow: 0 6px 16px rgba(22, 163, 74, 0.25);
+  }
+
+  .ecocare-signin-btn:hover {
+    color: #ffffff;
+    background: #15803d;
+    border-color: #15803d;
+  }
+
+  .ecocare-mobile-menu-btn {
+    margin-left: 0;
+    flex-shrink: 0;
+  }
+
+  .ecocare-mobile-menu {
+    flex-basis: 100%;
+    max-height: calc(100dvh - var(--topbar-h) - 110px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .ecocare-mobile-link { min-height: 46px; }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  :root { --topbar-h: 48px; --nav-gap: 8px; }
+
+  .ecocare-topbar { padding: 6px 10px; }
+  .ecocare-topbar-inner { height: 36px; padding: 4px 10px; }
+  .ecocare-top-badge { padding: 3px 8px; }
+
+  .ecocare-signin-btn { min-height: 40px; padding: 0 14px; font-size: 13px; }
+}
+
+@media (max-width: 420px) {
+  .ecocare-logo-text span { display: none; }
+  .ecocare-signin-btn { padding: 0 12px; gap: 5px; }
+}
+
+@media (max-width: 360px) {
+  .ecocare-signin-btn svg { display: none; }
+  .ecocare-logo-text strong { font-size: 16px; }
+  .ecocare-logo-icon { width: 36px; height: 36px; }
+}
+
+/* ---------- 2. OLD PILL NAVBAR / DRAWER (agar use ho raha ho) ---------- */
+.navbar-fixed-shell { top: 8px; padding: 0 10px; }
+
+@media (max-width: 600px) {
+  .pill-nav-container { height: 58px; padding: 0 12px 0 8px; }
+  .brand-title { font-size: 18px; }
+  .brand-subtitle { display: none; }
+  .pill-cta-btn { padding: 9px 14px; font-size: 13px; }
+}
+
+.mobile-glass-drawer { height: 100dvh; }
+
+/* ---------- 3. HERO ---------- */
+.hero-visual-card { min-width: 0; }
+.hero-layout > * { min-width: 0; }
+
+@media (max-width: 1100px) {
+  .badge-top-left { left: 0; }
+  .badge-middle-right { right: 0; }
+}
+
+@media (max-width: 980px) {
+  .hero-section { padding: 40px 0 56px; }
+  .hero-description { max-width: 100%; }
+  .hero-actions { margin-bottom: 32px; }
+  .hero-visual-card { max-width: 520px; width: 100%; margin: 0 auto; }
+}
+
+@media (max-width: 600px) {
+  .hero-section { padding: 28px 0 44px; }
+  .hero-description { font-size: 15.5px; margin-bottom: 24px; }
+  .hero-title { letter-spacing: -0.6px; }
+  .hero-actions > a,
+  .hero-actions > button { flex: 1 1 100%; justify-content: center; }
+  .hero-metrics-grid { gap: 14px 10px; }
+  .metric-icon-wrap { width: 38px; height: 38px; }
+  .metric-val { font-size: 18px; }
+  .visual-card-glass { padding: 20px; border-radius: 24px; }
+  .nature-orb { width: 140px; height: 140px; }
+  .badge-bottom-right { left: 0; }
+  .floating-badge { padding: 8px 10px; }
+}
+
+@media (max-width: 380px) {
+  .hero-metrics-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- 4. SCANNER / FEATURES / STEPS / QUOTE / CTA ---------- */
+@media (max-width: 768px) {
+  .waste-scanner-section { padding: 24px 0; }
+  .features-showcase-section { padding: 56px 0; }
+  .how-it-works-nature { padding: 56px 0 64px; }
+  .nature-quote-section { padding: 40px 0; }
+  .home-cta-section { padding: 24px 0 60px; }
+  .section-title-center { margin-bottom: 36px; }
+}
+
+@media (max-width: 600px) {
+  .scanner-container-card { padding: 22px 18px; border-radius: 24px; }
+  .scanner-title-area h2 { font-size: 22px; }
+  .scanner-learn-more { width: 100%; justify-content: center; }
+  .nature-feature-card { padding: 24px; }
+  .quote-card-box { padding: 36px 22px; border-radius: 24px; }
+  .nature-cta-card { padding: 30px 22px; border-radius: 24px; }
+  .cta-button-group > a,
+  .cta-button-group > button { flex: 1 1 100%; justify-content: center; }
+}
+
+@media (max-width: 1024px) {
+  .features-cards-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .steps-timeline-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px 18px;
+  }
+  .timeline-connector { display: none; }
+}
+
+@media (max-width: 640px) {
+  .features-cards-grid,
+  .steps-timeline-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- 5. REPORT / PICKUP FORMS ---------- */
+.sidebar-sticky-box { top: var(--nav-offset); }
+.report-form-layout > *,
+.pickup-form-layout > *,
+.details-layout-grid > *,
+.dashboard-main-grid > * { min-width: 0; }
+
+@media (max-width: 900px) {
+  .sidebar-sticky-box { position: static; }
+}
+
+@media (max-width: 768px) {
+  .report-issue-page,
+  .pickup-request-page,
+  .complaints-page,
+  .complaint-details-page,
+  .dashboard-page,
+  .admin-dashboard-page { padding: 24px 0 52px; }
+}
+
+@media (min-width: 441px) and (max-width: 768px) {
+  .slots-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .report-header-banner,
+  .pickup-header-banner { padding: 22px 18px; border-radius: 24px; }
+  .header-badge-wrap { flex-direction: column; gap: 14px; }
+  .header-badge-wrap h1 { font-size: clamp(22px, 7vw, 28px); }
+  .form-card-block { padding: 22px 18px; border-radius: 24px; }
+  .report-success-card,
+  .pickup-confirmation-card { flex-direction: column; padding: 24px 20px; gap: 16px; }
+  .success-actions,
+  .confirmation-actions { flex-direction: column; align-items: stretch; }
+  .btn-view-tracker,
+  .btn-go-dashboard,
+  .btn-new-report,
+  .btn-book-another { justify-content: center; text-align: center; }
+  .address-type-selector { flex-wrap: wrap; }
+  .upload-dropzone { padding: 26px 14px; }
+  .image-preview-card img { height: 210px; }
+  .label-with-action { flex-wrap: wrap; gap: 8px; }
+}
+
+/* ---------- 6. COMPLAINTS ---------- */
+.complaints-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+}
+
+@media (max-width: 900px) {
+  .filter-select-group { flex-wrap: wrap; }
+  .custom-select-box { flex: 1 1 160px; }
+}
+
+@media (min-width: 421px) and (max-width: 600px) {
+  .complaints-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .header-info h1 { font-size: clamp(24px, 7vw, 30px); }
+  .btn-header-cta { width: 100%; justify-content: center; }
+  .metric-stat-card { padding: 14px; gap: 10px; }
+  .metric-count { font-size: 20px; }
+  .complaint-card-image-wrap { height: 160px; }
+  .card-top-header { flex-wrap: wrap; gap: 8px; }
+}
+
+/* ---------- 7. COMPLAINT DETAILS ---------- */
+@media (max-width: 1024px) {
+  .details-layout-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .details-header-card,
+  .details-card-box,
+  .sidebar-card { padding: 20px 18px; border-radius: 24px; }
+  .details-header-card h1 { font-size: clamp(21px, 6vw, 26px); }
+  .details-meta-row { gap: 10px 16px; }
+  .evidence-photos-grid { grid-template-columns: 1fr; }
+  .photo-panel { height: 200px; }
+  .entry-header { flex-wrap: wrap; gap: 2px 10px; }
+  .star-rating-row { flex-wrap: wrap; }
+  .btn-submit-rating { margin-left: 0; }
+}
+
+/* Duplicate-class fixes (dashboard vs admin) */
+.timeline-entry.pending .pending-dot {
+  background: var(--text-muted);
+  width: 8px;
+  height: 8px;
+}
+
+.citizen-info-block .citizen-avatar {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  font-size: inherit;
+  font-weight: inherit;
+  background: var(--nature-100);
+  color: var(--nature-700);
+}
+
+/* ---------- 8. AWARENESS ---------- */
+@media (max-width: 1100px) {
+  .compost-steps-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .awareness-hero-box { padding: 30px 22px; border-radius: 24px; }
+  .hero-key-facts { gap: 16px; padding-top: 22px; }
+  .bins-guide-section,
+  .composting-guide-section { padding: 40px 0; }
+  .bin-tab-btn { padding: 10px 14px; font-size: 13px; flex: 1 1 calc(50% - 12px); justify-content: center; }
+  .bin-detailed-card { padding: 22px 18px; gap: 24px; border-radius: 24px; }
+  .bin-card-left h3 { font-size: 22px; }
+  .finder-card-box { padding: 22px 18px; border-radius: 24px; }
+  .rules-card { padding: 24px 20px; border-radius: 24px; }
+  .pledge-card-box { padding: 30px 22px; border-radius: 24px; gap: 24px; }
+  .pledge-content h2 { font-size: 24px; }
+  .pledge-side-links { width: 100%; }
+  .pledge-cta-btn,
+  .btn-take-pledge { width: 100%; justify-content: center; }
+  .compost-steps-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- 9. USER DASHBOARD ---------- */
+@media (max-width: 1100px) {
+  .dashboard-main-grid { grid-template-columns: 1fr; }
+  .dashboard-stats-grid,
+  .dashboard-quick-actions { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .dashboard-top-hero { padding: 22px 18px; border-radius: 24px; }
+  .citizen-info-block { gap: 14px; }
+  .citizen-info-block h1 { font-size: clamp(21px, 6vw, 26px); }
+  .ecopoints-wallet-card { min-width: 0; width: 100%; }
+  .dashboard-quick-actions,
+  .dashboard-stats-grid { grid-template-columns: 1fr; }
+  .dashboard-panel-card { padding: 20px 16px; border-radius: 24px; }
+  .dashboard-list-item { padding: 12px; gap: 10px; }
+  .item-title-row { flex-wrap: wrap; gap: 4px 8px; }
+  .item-title-row h4 { white-space: normal; }
+}
+
+/* ---------- 10. ADMIN DASHBOARD ---------- */
+@media (max-width: 1100px) {
+  .admin-metrics-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .admin-header-actions { flex-wrap: wrap; width: 100%; }
+}
+
+@media (max-width: 768px) {
+  .panel-controls-row { flex-direction: column; align-items: stretch; }
+  .admin-filter-wrapper { width: 100%; }
+}
+
+.admin-tabs-bar {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-tabs-bar::-webkit-scrollbar { display: none; }
+.admin-tab-btn { flex-shrink: 0; white-space: nowrap; }
+
+.admin-table-container {
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+}
+.admin-data-table { min-width: 760px; }
+
+@media (max-width: 600px) {
+  .admin-metrics-row { grid-template-columns: 1fr; }
+  .admin-title-area h1 { font-size: clamp(24px, 7vw, 30px); }
+  .admin-panel-box { padding: 16px 14px; border-radius: 22px; }
+  .admin-stat-card { padding: 16px; }
+  .btn-admin-cta,
+  .live-clock-pill { flex: 1 1 100%; justify-content: center; }
+  .admin-data-table th,
+  .admin-data-table td { padding: 10px; }
+}
+
+/* ---------- 11. AUTH (LOGIN / REGISTER) ---------- */
+@media (max-width: 860px) {
+  .auth-form-section { padding: 36px 20px 56px; }
+}
+
+@media (max-width: 480px) {
+  .auth-page-clean { padding: 24px 14px 48px; min-height: auto; }
+  .auth-central-card { padding: 30px 20px; border-radius: 24px; }
+  .auth-card-top { flex-wrap: wrap; gap: 10px; }
+  .auth-text-header h2 { font-size: 24px; }
+  .remember-me-row { flex-wrap: wrap; gap: 8px; }
+  .admin-popup-modal { padding: 32px 20px 24px; border-radius: 24px; }
+  .popup-button-row { grid-template-columns: 1fr; }
+  .btn-popup-proceed { order: -1; }
+}
+
+@media (max-height: 640px) {
+  .admin-popup-backdrop { align-items: flex-start; overflow-y: auto; }
+}
+
+/* ---------- 12. FOOTER ---------- */
+@media (max-width: 1100px) {
+  .footer-main-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 800px) {
+  .helpline-right { flex-wrap: wrap; width: 100%; }
+  .footer-main-grid { padding: 44px 0 32px; }
+}
+
+@media (max-width: 600px) {
+  .footer-section { margin-top: 56px; }
+  .helpline-phone-btn,
+  .helpline-report-btn { flex: 1 1 100%; justify-content: center; }
+  .footer-main-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- 13. INPUTS: iOS zoom fix + TOUCH ---------- */
+@media (max-width: 768px) {
+  body input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  body select,
+  body textarea { font-size: 16px; }
+}
+
+@media (pointer: coarse) {
+  .waste-chip,
+  .type-btn,
+  .btn-choose-file,
+  .pill-nav-item,
+  .drawer-link,
+  .star-btn { min-height: 40px; }
+}
+
+/* Touch devices: sticky hover animations band */
+@media (hover: none) {
+  .nature-feature-card:hover,
+  .eco-complaint-card:hover,
+  .quick-action-card:hover,
+  .metric-stat-card:hover,
+  .navbar-floating-pill:hover,
+  .auth-central-card:hover,
+  .btn-primary-nature:hover,
+  .btn-submit-report:hover,
+  .btn-submit-pickup:hover,
+  .btn-auth-submit:hover,
+  .ecocare-report-btn:hover,
+  .ecocare-signin-btn:hover { transform: none; }
+}
+
+/* ---------- 14. LANDSCAPE PHONES + MOTION ---------- */
+@media (max-height: 500px) and (orientation: landscape) {
+  .auth-page-clean { min-height: auto; padding-block: 20px; }
+  .hero-section { padding: 28px 0 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .ecocare-navbar-wrapper,
+  .footer-section { display: none !important; }
+}
