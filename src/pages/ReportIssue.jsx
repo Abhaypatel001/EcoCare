@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -14,10 +15,41 @@ import {
   Navigation,
   FileText,
   Sparkles,
+  LocateFixed,
 } from "lucide-react";
+
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
+
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// ==========================================
+// FIX LEAFLET DEFAULT MARKER ICON
+// ==========================================
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
 
 const API_BASE_URL =
   "https://ecocare-backend-zhgx.onrender.com";
+
+// ==========================================
+// ISSUE CATEGORIES
+// ==========================================
 
 const issueCategories = [
   {
@@ -58,6 +90,26 @@ const issueCategories = [
   },
 ];
 
+// ==========================================
+// MAP CLICK COMPONENT
+// ==========================================
+
+function LocationPicker({ onLocationSelect }) {
+  useMapEvents({
+    click(event) {
+      const { lat, lng } = event.latlng;
+
+      onLocationSelect(lat, lng);
+    },
+  });
+
+  return null;
+}
+
+// ==========================================
+// REPORT ISSUE
+// ==========================================
+
 function ReportIssue() {
   const navigate = useNavigate();
 
@@ -68,14 +120,33 @@ function ReportIssue() {
     address: "",
     landmark: "",
     priority: "Medium",
+
+    // REAL LOCATION DATA
+    latitude: null,
+    longitude: null,
   });
 
   const [image, setImage] = useState(null);
   const [imageName, setImageName] = useState("");
-  const [detectingLocation, setDetectingLocation] = useState(false);
-  const [locationSuccess, setLocationSuccess] = useState(false);
-  const [submittedReport, setSubmittedReport] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+
+  const [detectingLocation, setDetectingLocation] =
+    useState(false);
+
+  const [locationSuccess, setLocationSuccess] =
+    useState(false);
+
+  const [locationError, setLocationError] =
+    useState("");
+
+  const [submittedReport, setSubmittedReport] =
+    useState(null);
+
+  const [submitting, setSubmitting] =
+    useState(false);
+
+  // ==========================================
+  // FORM CHANGE
+  // ==========================================
 
   const handleChange = (e) => {
     setFormData({
@@ -83,6 +154,10 @@ function ReportIssue() {
       [e.target.name]: e.target.value,
     });
   };
+
+  // ==========================================
+  // IMAGE
+  // ==========================================
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -98,188 +173,405 @@ function ReportIssue() {
     setImageName("");
   };
 
-  const handleDetectLocation = () => {
-    setDetectingLocation(true);
+  // ==========================================
+  // REVERSE GEOCODING
+  // LAT/LNG → REAL ADDRESS
+  // ==========================================
 
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude.toFixed(4);
-          const lng = position.coords.longitude.toFixed(4);
-
-          setFormData((prev) => ({
-            ...prev,
-            address: `Near Sector 4, Lat: ${lat}, Lng: ${lng}, City Central Ward`,
-            landmark: "Auto-detected via Device GPS",
-          }));
-
-          setDetectingLocation(false);
-          setLocationSuccess(true);
-
-          setTimeout(() => {
-            setLocationSuccess(false);
-          }, 3000);
-        },
-        () => {
-          setFormData((prev) => ({
-            ...prev,
-            address: "Civil Lines, Near Green Park, Kanpur",
-            landmark: "Opposite Nagar Nigam Community Center",
-          }));
-
-          setDetectingLocation(false);
-          setLocationSuccess(true);
-
-          setTimeout(() => {
-            setLocationSuccess(false);
-          }, 3000);
+  const getAddressFromCoordinates = async (
+    latitude,
+    longitude
+  ) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            Accept: "application/json",
+          },
         }
       );
-    } else {
+
+      if (!response.ok) {
+        throw new Error(
+          "Unable to find address for this location."
+        );
+      }
+
+      const data = await response.json();
+
+      return (
+        data.display_name ||
+        `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+      );
+    } catch (error) {
+      console.error(
+        "Reverse Geocoding Error:",
+        error
+      );
+
+      return `${latitude.toFixed(
+        6
+      )}, ${longitude.toFixed(6)}`;
+    }
+  };
+
+  // ==========================================
+  // SELECT LOCATION FROM MAP
+  // ==========================================
+
+  const handleLocationSelect = async (
+    latitude,
+    longitude
+  ) => {
+    try {
+      setDetectingLocation(true);
+      setLocationError("");
+
+      const address =
+        await getAddressFromCoordinates(
+          latitude,
+          longitude
+        );
+
       setFormData((prev) => ({
         ...prev,
-        address: "Civil Lines, Kanpur Central",
-        landmark: "Main Road",
+
+        address,
+
+        latitude,
+        longitude,
       }));
 
+      setLocationSuccess(true);
+
+      setTimeout(() => {
+        setLocationSuccess(false);
+      }, 3000);
+    } catch (error) {
+      console.error(error);
+
+      setLocationError(
+        "Unable to identify this location."
+      );
+    } finally {
       setDetectingLocation(false);
     }
   };
+
+  // ==========================================
+  // DETECT CURRENT GPS LOCATION
+  // ==========================================
+
+  const handleDetectLocation = () => {
+    setLocationError("");
+
+    if (!("geolocation" in navigator)) {
+      setLocationError(
+        "Your browser does not support location detection."
+      );
+
+      return;
+    }
+
+    setDetectingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const latitude =
+          position.coords.latitude;
+
+        const longitude =
+          position.coords.longitude;
+
+        console.log(
+          "REAL GPS LOCATION:",
+          latitude,
+          longitude
+        );
+
+        await handleLocationSelect(
+          latitude,
+          longitude
+        );
+
+        setDetectingLocation(false);
+      },
+
+      (error) => {
+        console.error(
+          "GPS Location Error:",
+          error
+        );
+
+        setDetectingLocation(false);
+
+        if (error.code === 1) {
+          setLocationError(
+            "Location permission was denied. Please allow location access in your browser."
+          );
+        } else if (error.code === 2) {
+          setLocationError(
+            "Your current location could not be determined."
+          );
+        } else if (error.code === 3) {
+          setLocationError(
+            "Location request timed out. Please try again."
+          );
+        } else {
+          setLocationError(
+            "Unable to detect your location."
+          );
+        }
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  // ==========================================
+  // SUBMIT
+  // ==========================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (submitting) return;
 
+    // Require location
+    if (
+      !formData.latitude ||
+      !formData.longitude
+    ) {
+      alert(
+        "Please detect or select the waste location before submitting."
+      );
+
+      return;
+    }
+
     try {
       setSubmitting(true);
 
-      /*
-       * Get logged-in user token.
-       * Your login response stores the token in localStorage.
-       */
       const token =
-        localStorage.getItem("ecocare_token") ||
+        localStorage.getItem(
+          "ecocare_token"
+        ) ||
         localStorage.getItem("token");
 
       if (!token) {
-        alert("Your login session has expired. Please login again.");
+        alert(
+          "Your login session has expired. Please login again."
+        );
+
         navigate("/login");
+
         return;
       }
 
-      const complaintData = {
-        title: formData.title || formData.issueType,
-        description: formData.description,
-        location: formData.address || "Kanpur Central Ward",
+      // ==========================================
+      // FRONTEND COMPLAINT DATA
+      // ==========================================
 
-        /*
-         * Backend Complaint model uses these categories:
-         *
-         * Garbage Collection
-         * Waste Dumping
-         * Dirty Area
-         * Blocked Drain
-         * Other
-         *
-         * So frontend categories are mapped to backend categories.
-         */
+      const complaintData = {
+        title:
+          formData.title ||
+          formData.issueType,
+
+        description:
+          formData.description,
+
+        // Current backend still receives address
+        location:
+          formData.address,
+
+        // NEW REAL LOCATION DATA
+        latitude:
+          formData.latitude,
+
+        longitude:
+          formData.longitude,
+
+        landmark:
+          formData.landmark,
+
         category:
-          formData.issueType === "Uncollected Waste"
+          formData.issueType ===
+          "Uncollected Waste"
             ? "Garbage Collection"
-            : formData.issueType === "Illegal Dumping"
+            : formData.issueType ===
+              "Illegal Dumping"
             ? "Waste Dumping"
-            : formData.issueType === "Plastic Waste"
+            : formData.issueType ===
+              "Plastic Waste"
             ? "Other"
-            : formData.issueType === "Organic Waste"
+            : formData.issueType ===
+              "Organic Waste"
             ? "Dirty Area"
-            : formData.issueType === "Hazardous Waste"
+            : formData.issueType ===
+              "Hazardous Waste"
             ? "Other"
-            : formData.issueType === "Construction Waste"
+            : formData.issueType ===
+              "Construction Waste"
             ? "Other"
             : "Other",
       };
 
-      console.log("=================================");
-      console.log("SUBMITTING COMPLAINT");
-      console.log("Complaint Data:", complaintData);
-      console.log("Token exists:", !!token);
-      console.log("=================================");
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "SUBMITTING COMPLAINT"
+      );
+
+      console.log(
+        "Complaint Data:",
+        complaintData
+      );
+
+      console.log(
+        "REAL LATITUDE:",
+        formData.latitude
+      );
+
+      console.log(
+        "REAL LONGITUDE:",
+        formData.longitude
+      );
+
+      console.log(
+        "================================="
+      );
+
+      // ==========================================
+      // API REQUEST
+      // ==========================================
 
       const response = await fetch(
         `${API_BASE_URL}/api/complaints`,
         {
           method: "POST",
+
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${token}`,
           },
-          body: JSON.stringify(complaintData),
+
+          body: JSON.stringify(
+            complaintData
+          ),
         }
       );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
-      console.log("=================================");
-      console.log("COMPLAINT API RESPONSE");
-      console.log(data);
-      console.log("=================================");
+      console.log(
+        "COMPLAINT API RESPONSE:",
+        data
+      );
 
-      if (!response.ok || !data.success) {
+      if (
+        !response.ok ||
+        !data.success
+      ) {
         throw new Error(
-          data.message || "Failed to submit complaint"
+          data.message ||
+            "Failed to submit complaint"
         );
       }
 
-      /*
-       * Backend successfully created the complaint.
-       * Use backend MongoDB _id as tracking ID.
-       */
+      // ==========================================
+      // TRACKING ID
+      // ==========================================
+
       const complaintId =
         data.complaint?._id ||
         data.data?._id ||
         data._id;
 
       const newReport = {
-        id: complaintId || `WM${Date.now()}`,
-        title: complaintData.title,
-        type: complaintData.category,
-        location: complaintData.location,
+        id:
+          complaintId ||
+          `WM${Date.now()}`,
+
+        title:
+          complaintData.title,
+
+        type:
+          complaintData.category,
+
+        location:
+          complaintData.location,
+
+        latitude:
+          formData.latitude,
+
+        longitude:
+          formData.longitude,
+
         date: "Just now",
+
         status: "Pending",
-        priority: formData.priority,
-        description: complaintData.description,
+
+        priority:
+          formData.priority,
+
+        description:
+          complaintData.description,
+
         image:
           image ||
           "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80",
       };
 
-      setSubmittedReport(newReport);
+      setSubmittedReport(
+        newReport
+      );
 
       window.scrollTo({
         top: 0,
         behavior: "smooth",
       });
 
-      /*
-       * Reset form after successful submission.
-       */
+      // ==========================================
+      // RESET
+      // ==========================================
+
       setFormData({
-        issueType: "Uncollected Waste",
+        issueType:
+          "Uncollected Waste",
+
         title: "",
+
         description: "",
+
         address: "",
+
         landmark: "",
+
         priority: "Medium",
+
+        latitude: null,
+
+        longitude: null,
       });
 
       setImage(null);
       setImageName("");
     } catch (error) {
-      console.error("=================================");
-      console.error("COMPLAINT SUBMISSION ERROR");
-      console.error(error);
-      console.error("=================================");
+      console.error(
+        "COMPLAINT SUBMISSION ERROR:",
+        error
+      );
 
       alert(
         error.message ||
@@ -290,18 +582,39 @@ function ReportIssue() {
     }
   };
 
+  // ==========================================
+  // MAP CENTER
+  // ==========================================
+
+  const mapCenter =
+    formData.latitude &&
+    formData.longitude
+      ? [
+          formData.latitude,
+          formData.longitude,
+        ]
+      : [26.4499, 80.3319]; // Kanpur default view
+
+  // ==========================================
+  // UI
+  // ==========================================
+
   return (
     <div className="report-issue-page">
       <div className="report-container">
 
-        {/* Navigation Breadcrumb */}
+        {/* NAVIGATION */}
+
         <div className="report-nav-bar">
           <Link
             to="/dashboard"
             className="btn-back-link"
           >
             <ArrowLeft size={16} />
-            <span>Back to Dashboard</span>
+
+            <span>
+              Back to Dashboard
+            </span>
           </Link>
 
           <span className="breadcrumb-pill">
@@ -309,40 +622,53 @@ function ReportIssue() {
           </span>
         </div>
 
-        {/* Page Header */}
+        {/* HEADER */}
+
         <div className="report-header-banner">
           <div className="header-badge-wrap">
+
             <div className="header-icon-box">
               <Camera size={26} />
             </div>
 
             <div>
+
               <span className="header-eyebrow">
-                COMMUNITY CLEANLINESS INITIATIVE
+                COMMUNITY CLEANLINESS
+                INITIATIVE
               </span>
 
-              <h1>Report a Waste Issue</h1>
+              <h1>
+                Report a Waste Issue
+              </h1>
 
               <p>
-                Help municipal sanitation crews maintain
-                clean, litter-free streets. Take a photo,
-                verify your location, and track resolution
-                in real time.
+                Help municipal sanitation
+                crews maintain clean,
+                litter-free streets. Take
+                a photo, verify your
+                location, and track
+                resolution in real time.
               </p>
+
             </div>
           </div>
         </div>
 
-        {/* SUCCESS CARD */}
+        {/* SUCCESS */}
+
         {submittedReport && (
           <div className="report-success-card">
+
             <div className="success-icon-wrap">
               <CheckCircle2 size={36} />
             </div>
 
             <div className="success-content">
+
               <div className="success-tag">
-                Report Successfully Registered!
+                Report Successfully
+                Registered!
               </div>
 
               <h2>
@@ -351,12 +677,15 @@ function ReportIssue() {
               </h2>
 
               <p>
-                Your report has been dispatched to the
-                Ward Sanitation Officer. An eco-collection
-                vehicle is scheduled for verification
+                Your report has been
+                dispatched to the Ward
+                Sanitation Officer.
+                An eco-collection vehicle
+                is scheduled for verification
                 within{" "}
                 <strong>
-                  {submittedReport.priority === "Critical"
+                  {submittedReport.priority ===
+                  "Critical"
                     ? "4 hours"
                     : "24 hours"}
                 </strong>
@@ -364,37 +693,51 @@ function ReportIssue() {
               </p>
 
               <div className="success-actions">
+
                 <Link
                   to={`/complaints/${submittedReport.id}`}
                   className="btn-view-tracker"
                 >
                   <FileText size={16} />
-                  Track Report #{submittedReport.id}
+
+                  Track Report #
+                  {submittedReport.id}
                 </Link>
 
                 <button
                   type="button"
-                  onClick={() => setSubmittedReport(null)}
+                  onClick={() =>
+                    setSubmittedReport(
+                      null
+                    )
+                  }
                   className="btn-new-report"
                 >
                   Report Another Issue
                 </button>
+
               </div>
+
             </div>
           </div>
         )}
 
-        {/* MAIN REPORTING FORM */}
+        {/* FORM */}
+
         {!submittedReport && (
           <form
             className="report-form-layout"
             onSubmit={handleSubmit}
           >
+
             <div className="form-main-col">
 
-              {/* CATEGORY */}
+              {/* STEP 1 */}
+
               <div className="form-card-block">
+
                 <div className="block-header">
+
                   <span className="step-num">
                     Step 1
                   </span>
@@ -404,56 +747,75 @@ function ReportIssue() {
                   </h3>
 
                   <p>
-                    Choose the category that best
-                    describes the waste problem.
+                    Choose the category that
+                    best describes the waste
+                    problem.
                   </p>
+
                 </div>
 
                 <div className="category-selection-grid">
-                  {issueCategories.map((cat) => {
-                    const IconComp = cat.icon;
 
-                    const isSelected =
-                      formData.issueType === cat.id;
+                  {issueCategories.map(
+                    (cat) => {
 
-                    return (
-                      <button
-                        type="button"
-                        key={cat.id}
-                        className={`category-tile ${
-                          isSelected
-                            ? "selected"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          setFormData({
-                            ...formData,
-                            issueType: cat.id,
-                          })
-                        }
-                      >
-                        <div className="tile-icon-box">
-                          <IconComp size={20} />
-                        </div>
+                      const IconComp =
+                        cat.icon;
 
-                        <div className="tile-text">
-                          <strong>
-                            {cat.label}
-                          </strong>
+                      const isSelected =
+                        formData.issueType ===
+                        cat.id;
 
-                          <small>
-                            {cat.desc}
-                          </small>
-                        </div>
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          type="button"
+                          key={cat.id}
+                          className={`category-tile ${
+                            isSelected
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              issueType:
+                                cat.id,
+                            })
+                          }
+                        >
+
+                          <div className="tile-icon-box">
+                            <IconComp
+                              size={20}
+                            />
+                          </div>
+
+                          <div className="tile-text">
+
+                            <strong>
+                              {cat.label}
+                            </strong>
+
+                            <small>
+                              {cat.desc}
+                            </small>
+
+                          </div>
+
+                        </button>
+                      );
+                    }
+                  )}
+
                 </div>
               </div>
 
-              {/* PHOTO */}
+              {/* STEP 2 PHOTO */}
+
               <div className="form-card-block">
+
                 <div className="block-header">
+
                   <span className="step-num">
                     Step 2
                   </span>
@@ -463,49 +825,59 @@ function ReportIssue() {
                   </h3>
 
                   <p>
-                    A clear photograph helps the
-                    sanitation team gauge the required
-                    equipment.
+                    A clear photograph helps
+                    the sanitation team gauge
+                    the required equipment.
                   </p>
+
                 </div>
 
                 {!image ? (
                   <label className="upload-dropzone">
+
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageChange}
+                      onChange={
+                        handleImageChange
+                      }
                       className="hidden-file-input"
                     />
 
                     <div className="dropzone-inner">
+
                       <div className="upload-icon-circle">
                         <Upload size={28} />
                       </div>
 
                       <h4>
-                        Drag and drop photo here, or
-                        click to browse
+                        Drag and drop photo
+                        here, or click to
+                        browse
                       </h4>
 
                       <p>
-                        Supports JPG, PNG, WEBP up to
-                        10MB
+                        Supports JPG, PNG,
+                        WEBP up to 10MB
                       </p>
 
                       <span className="btn-choose-file">
                         Select Image
                       </span>
+
                     </div>
+
                   </label>
                 ) : (
                   <div className="image-preview-card">
+
                     <img
                       src={image}
                       alt="Uploaded waste evidence"
                     />
 
                     <div className="image-preview-overlay">
+
                       <span className="preview-filename">
                         {imageName ||
                           "Evidence Photo"}
@@ -514,36 +886,49 @@ function ReportIssue() {
                       <button
                         type="button"
                         className="btn-remove-photo"
-                        onClick={removeImage}
-                        title="Remove photo"
+                        onClick={
+                          removeImage
+                        }
                       >
                         <X size={18} />
                       </button>
+
                     </div>
+
                   </div>
                 )}
+
               </div>
 
-              {/* LOCATION & DESCRIPTION */}
+              {/* STEP 3 LOCATION */}
+
               <div className="form-card-block">
+
                 <div className="block-header">
+
                   <span className="step-num">
                     Step 3
                   </span>
 
                   <h3>
-                    Location & Issue Description
+                    Location & Issue
+                    Description
                   </h3>
 
                   <p>
-                    Specify the exact spot so our green
-                    team can locate it quickly.
+                    Detect your real location
+                    or select the exact point
+                    directly on the map.
                   </p>
+
                 </div>
 
                 {/* TITLE */}
+
                 <div className="input-group-row">
+
                   <div className="form-field-wrap">
+
                     <label>
                       Short Title
                     </label>
@@ -552,19 +937,29 @@ function ReportIssue() {
                       type="text"
                       name="title"
                       placeholder="e.g. Overflowing garbage bin outside community park"
-                      value={formData.title}
-                      onChange={handleChange}
+                      value={
+                        formData.title
+                      }
+                      onChange={
+                        handleChange
+                      }
                       required
                     />
+
                   </div>
+
                 </div>
 
-                {/* ADDRESS */}
+                {/* REAL LOCATION */}
+
                 <div className="input-group-row">
+
                   <div className="form-field-wrap">
+
                     <div className="label-with-action">
+
                       <label>
-                        Incident Street Address
+                        Incident Location
                       </label>
 
                       <button
@@ -577,6 +972,7 @@ function ReportIssue() {
                           detectingLocation
                         }
                       >
+
                         <Navigation
                           size={14}
                           className={
@@ -591,10 +987,15 @@ function ReportIssue() {
                             ? "Detecting GPS..."
                             : "📍 Detect My Location"}
                         </span>
+
                       </button>
+
                     </div>
 
+                    {/* ADDRESS */}
+
                     <div className="input-with-icon">
+
                       <MapPin
                         size={18}
                         className="field-icon"
@@ -603,43 +1004,258 @@ function ReportIssue() {
                       <input
                         type="text"
                         name="address"
-                        placeholder="e.g. Civil Lines, Near Green Park, Kanpur"
-                        value={formData.address}
-                        onChange={handleChange}
+                        placeholder="Detect your location or select a point on the map"
+                        value={
+                          formData.address
+                        }
+                        onChange={
+                          handleChange
+                        }
                         required
                       />
+
                     </div>
+
+                    {/* LOCATION ERROR */}
+
+                    {locationError && (
+                      <div
+                        style={{
+                          marginTop:
+                            "10px",
+                          padding:
+                            "10px 12px",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "#fff1f2",
+                          color:
+                            "#be123c",
+                          fontSize:
+                            "13px",
+                        }}
+                      >
+                        {locationError}
+                      </div>
+                    )}
+
+                    {/* SUCCESS */}
 
                     {locationSuccess && (
                       <span className="location-success-text">
-                        <CheckCircle2 size={13} />
-                        GPS Coordinates captured
+
+                        <CheckCircle2
+                          size={13}
+                        />
+
+                        Real GPS location
+                        captured
                         successfully!
+
                       </span>
                     )}
+
                   </div>
+
                 </div>
 
+                {/* ==================================
+                    MAP
+                ================================== */}
+
+                <div
+                  style={{
+                    marginTop:
+                      "18px",
+                    borderRadius:
+                      "16px",
+                    overflow:
+                      "hidden",
+                    border:
+                      "1px solid #d0d5dd",
+                    height:
+                      "360px",
+                    position:
+                      "relative",
+                  }}
+                >
+
+                  <MapContainer
+                    center={mapCenter}
+                    zoom={
+                      formData.latitude
+                        ? 17
+                        : 12
+                    }
+                    scrollWheelZoom={
+                      true
+                    }
+                    style={{
+                      height:
+                        "100%",
+                      width:
+                        "100%",
+                    }}
+                  >
+
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+
+                    <LocationPicker
+                      onLocationSelect={
+                        handleLocationSelect
+                      }
+                    />
+
+                    {formData.latitude &&
+                      formData.longitude && (
+                        <Marker
+                          position={[
+                            formData.latitude,
+                            formData.longitude,
+                          ]}
+                        >
+
+                          <Popup>
+
+                            <strong>
+                              EcoCare
+                              Report
+                              Location
+                            </strong>
+
+                            <br />
+
+                            {formData.address ||
+                              "Selected location"}
+
+                          </Popup>
+
+                        </Marker>
+                      )}
+
+                  </MapContainer>
+
+                  {/* MAP INSTRUCTION */}
+
+                  {!formData.latitude && (
+                    <div
+                      style={{
+                        position:
+                          "absolute",
+                        top: "15px",
+                        left: "50%",
+                        transform:
+                          "translateX(-50%)",
+                        zIndex: 1000,
+                        background:
+                          "white",
+                        padding:
+                          "9px 14px",
+                        borderRadius:
+                          "10px",
+                        boxShadow:
+                          "0 3px 12px rgba(0,0,0,.15)",
+                        fontSize:
+                          "13px",
+                        fontWeight:
+                          "600",
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
+                      📍 Click on the map
+                      to select location
+                    </div>
+                  )}
+
+                </div>
+
+                {/* COORDINATES */}
+
+                {formData.latitude &&
+                  formData.longitude && (
+                    <div
+                      style={{
+                        marginTop:
+                          "12px",
+                        padding:
+                          "12px 14px",
+                        borderRadius:
+                          "10px",
+                        background:
+                          "#f0fdf4",
+                        border:
+                          "1px solid #bbf7d0",
+                        fontSize:
+                          "13px",
+                        color:
+                          "#166534",
+                      }}
+                    >
+
+                      <strong>
+                        📍 Location
+                        selected
+                      </strong>
+
+                      <div
+                        style={{
+                          marginTop:
+                            "5px",
+                        }}
+                      >
+                        Latitude:{" "}
+                        {formData.latitude.toFixed(
+                          6
+                        )}
+                      </div>
+
+                      <div>
+                        Longitude:{" "}
+                        {formData.longitude.toFixed(
+                          6
+                        )}
+                      </div>
+
+                    </div>
+                  )}
+
                 {/* LANDMARK */}
+
                 <div className="input-group-row">
+
                   <div className="form-field-wrap">
+
                     <label>
-                      Nearby Landmark (Optional)
+                      Nearby Landmark
+                      (Optional)
                     </label>
 
                     <input
                       type="text"
                       name="landmark"
                       placeholder="e.g. Opposite State Bank ATM, Beside Tea Stall"
-                      value={formData.landmark}
-                      onChange={handleChange}
+                      value={
+                        formData.landmark
+                      }
+                      onChange={
+                        handleChange
+                      }
                     />
+
                   </div>
+
                 </div>
 
                 {/* DESCRIPTION */}
+
                 <div className="input-group-row">
+
                   <div className="form-field-wrap">
+
                     <label>
                       Detailed Description
                     </label>
@@ -651,48 +1267,65 @@ function ReportIssue() {
                       value={
                         formData.description
                       }
-                      onChange={handleChange}
+                      onChange={
+                        handleChange
+                      }
                       required
                     ></textarea>
+
                   </div>
+
                 </div>
+
               </div>
             </div>
 
             {/* SIDEBAR */}
+
             <div className="form-sidebar-col">
+
               <div className="sidebar-sticky-box">
 
                 {/* PRIORITY */}
+
                 <div className="sidebar-section-card">
+
                   <h4>
-                    Severity / Urgency
+                    Severity /
+                    Urgency
                   </h4>
 
                   <p className="sidebar-help-text">
-                    Emergency dumps blocking roads
-                    or medical hazards receive
-                    priority dispatch.
+                    Emergency dumps
+                    blocking roads or
+                    medical hazards
+                    receive priority
+                    dispatch.
                   </p>
 
                   <div className="priority-options-list">
+
                     {[
                       {
                         val: "Low",
-                        label: "Standard (48h)",
+                        label:
+                          "Standard (48h)",
                         color: "low",
                       },
                       {
                         val: "Medium",
-                        label: "Priority (24h)",
+                        label:
+                          "Priority (24h)",
                         color: "medium",
                       },
                       {
                         val: "Critical",
-                        label: "Emergency (4-6h)",
+                        label:
+                          "Emergency (4-6h)",
                         color: "high",
                       },
                     ].map((p) => (
+
                       <label
                         key={p.val}
                         className={`priority-select-item ${
@@ -702,6 +1335,7 @@ function ReportIssue() {
                             : ""
                         }`}
                       >
+
                         <input
                           type="radio"
                           name="priority"
@@ -720,6 +1354,7 @@ function ReportIssue() {
                         ></span>
 
                         <div>
+
                           <strong>
                             {p.val}
                           </strong>
@@ -727,30 +1362,48 @@ function ReportIssue() {
                           <small>
                             {p.label}
                           </small>
+
                         </div>
+
                       </label>
+
                     ))}
+
                   </div>
+
                 </div>
 
                 {/* ECO IMPACT */}
+
                 <div className="sidebar-section-card eco-guarantee-card">
+
                   <div className="card-badge-row">
+
                     <Leaf size={16} />
+
                     <span>
-                      Zero Waste Commitment
+                      Zero Waste
+                      Commitment
                     </span>
+
                   </div>
 
                   <p>
-                    All collected organic waste is
-                    processed at our bio-composting
-                    facility, diverting it from toxic
-                    open landfills.
+                    All collected
+                    organic waste is
+                    processed at our
+                    bio-composting
+                    facility,
+                    diverting it from
+                    toxic open
+                    landfills.
                   </p>
 
                   <div className="eco-points-preview">
-                    <Sparkles size={16} />
+
+                    <Sparkles
+                      size={16}
+                    />
 
                     <span>
                       You'll earn{" "}
@@ -759,41 +1412,59 @@ function ReportIssue() {
                       </strong>{" "}
                       for reporting!
                     </span>
+
                   </div>
+
                 </div>
 
                 {/* SUBMIT */}
+
                 <button
                   type="submit"
                   className="btn-submit-report"
-                  disabled={submitting}
+                  disabled={
+                    submitting
+                  }
                 >
+
                   {submitting ? (
-                    <>
-                      <span>Submitting...</span>
-                    </>
+                    <span>
+                      Submitting...
+                    </span>
                   ) : (
                     <>
-                      <Send size={18} />
+                      <Send
+                        size={18}
+                      />
+
                       <span>
-                        Submit Waste Report
+                        Submit Waste
+                        Report
                       </span>
                     </>
                   )}
+
                 </button>
 
                 <p className="submit-disclaimer">
-                  By submitting, you confirm the
-                  accuracy of the location to assist
-                  municipal sanitation.
+                  By submitting, you
+                  confirm the accuracy
+                  of the location to
+                  assist municipal
+                  sanitation.
                 </p>
+
               </div>
+
             </div>
+
           </form>
         )}
+
       </div>
     </div>
   );
 }
 
 export default ReportIssue;
+

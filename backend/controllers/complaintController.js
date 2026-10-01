@@ -9,14 +9,43 @@ const createComplaint = async (req, res) => {
       title,
       description,
       location,
+      latitude,
+      longitude,
+      landmark,
       category,
       image,
     } = req.body;
 
+    // Basic validation
     if (!title || !description || !location) {
       return res.status(400).json({
         success: false,
         message: "Title, description and location are required",
+      });
+    }
+
+    // Validate coordinates when provided
+    if (
+      latitude !== undefined &&
+      latitude !== null &&
+      (typeof latitude !== "number" || latitude < -90 || latitude > 90)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude",
+      });
+    }
+
+    if (
+      longitude !== undefined &&
+      longitude !== null &&
+      (typeof longitude !== "number" ||
+        longitude < -180 ||
+        longitude > 180)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid longitude",
       });
     }
 
@@ -25,6 +54,15 @@ const createComplaint = async (req, res) => {
       title,
       description,
       location,
+      latitude:
+        latitude !== undefined && latitude !== null
+          ? Number(latitude)
+          : undefined,
+      longitude:
+        longitude !== undefined && longitude !== null
+          ? Number(longitude)
+          : undefined,
+      landmark: landmark || "",
       category: category || "Other",
       image: image || "",
     });

@@ -20,9 +20,28 @@ const complaintSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Real readable address
     location: {
       type: String,
       required: true,
+      trim: true,
+    },
+
+    // Real GPS coordinates
+    latitude: {
+      type: Number,
+      required: false,
+    },
+
+    longitude: {
+      type: Number,
+      required: false,
+    },
+
+    // Optional nearby landmark
+    landmark: {
+      type: String,
+      default: "",
       trim: true,
     },
 
