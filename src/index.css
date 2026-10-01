@@ -7459,3 +7459,42 @@ h1, h2, h3, h4, p, li, strong, span {
   .ecocare-navbar-wrapper,
   .footer-section { display: none !important; }
 }
+/* ---------- USER NAME: tablet + mobile par bhi dikhao ---------- */
+@media (max-width: 1150px) {
+  .ecocare-user-info { display: flex; }
+  .ecocare-user-box { padding: 5px 12px 5px 5px; }
+}
+
+@media (max-width: 950px) {
+  .ecocare-user-box {
+    max-width: min(210px, 46vw);
+    min-width: 0;
+    padding: 4px 12px 4px 4px;
+    gap: 8px;
+  }
+
+  .ecocare-user-info {
+    display: flex;
+    min-width: 0;
+  }
+
+  .ecocare-user-info strong {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ecocare-user-icon { flex-shrink: 0; }
+}
+
+@media (max-width: 480px) {
+  .ecocare-user-box { max-width: 44vw; padding-right: 10px; }
+  .ecocare-user-info span { display: none; }   /* chhota label hatao, sirf naam */
+  .ecocare-user-info strong { font-size: 12.5px; }
+  .ecocare-logo-text strong { font-size: 17px; }
+}
+
+@media (max-width: 360px) {
+  .ecocare-logo-text { display: none; }        /* bahut chhoti screen: logo icon + naam */
+}
