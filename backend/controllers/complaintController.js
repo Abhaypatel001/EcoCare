@@ -25,13 +25,20 @@ const verifyWasteImage = async (file) => {
   }
 
   try {
-    // Convert uploaded image to base64
+    // ==========================================
+    // CONVERT IMAGE TO BASE64
+    // ==========================================
+
     const base64Image = file.buffer.toString("base64");
 
     const imageDataUrl = `data:${file.mimetype};base64,${base64Image}`;
 
+    console.log("🤖 Sending image to OpenAI...");
+    console.log("Image type:", file.mimetype);
+    console.log("Image size:", file.size);
+
     // ==========================================
-    // AI VISION ANALYSIS
+    // OPENAI VISION ANALYSIS
     // ==========================================
 
     const response = await openai.responses.create({
@@ -48,57 +55,72 @@ const verifyWasteImage = async (file) => {
               text: `
 You are an advanced AI waste-management image verification system.
 
-Your job is to determine whether the uploaded image is genuinely related
-to a waste-management complaint.
+Your task is to determine whether the uploaded image genuinely contains
+visible waste related to a public waste-management complaint.
 
-Analyze the image carefully.
+Analyze ONLY what is visibly present in the image.
 
-VALID WASTE EXAMPLES:
+Do NOT trust the complaint title or description as evidence.
+
+========================================
+VALID WASTE EXAMPLES
+========================================
+
 - Garbage piles
 - Uncollected household waste
 - Plastic waste
-- Waste dumped on roads
+- Garbage dumped on roads
 - Illegal garbage dumping
 - Overflowing garbage bins
 - Organic waste
 - Construction waste
 - Hazardous waste
 - Waste blocking drains
-- Dirty public areas caused by waste
+- Dirty public areas caused by visible waste
 
-INVALID / UNRELATED EXAMPLES:
+========================================
+INVALID / UNRELATED IMAGES
+========================================
+
+Reject images containing only:
+
 - Selfies
 - Human portraits
+- People
 - Animals
 - Vehicles without visible waste
 - Buildings without visible waste
 - Normal roads
-- Nature/scenery
+- Nature
+- Trees
+- Landscapes
+- Rivers
 - Food photos
 - Screenshots
-- Random objects
-- Products
 - Documents
+- Random objects
+- Consumer products
 - Blank images
-- Images where waste cannot reasonably be identified
+- Indoor rooms without visible waste
+- Any image where waste cannot reasonably be identified
 
-IMPORTANT:
-Do not assume an image contains waste just because the complaint
-description says so.
+========================================
+IMPORTANT RULE
+========================================
 
-Only classify as waste when visible evidence exists in the image.
+Only classify an image as waste when there is visible evidence
+of waste in the image.
 
-Return ONLY valid JSON in exactly this structure:
+Do not assume waste exists simply because the user says there is waste.
 
-{
-  "isWaste": true,
-  "confidence": 0.95,
-  "category": "Plastic Waste",
-  "explanation": "Visible accumulation of plastic waste is present.",
-  "status": "Approved"
-}
+If the image is ambiguous, use Review.
 
-CATEGORY MUST BE ONE OF:
+========================================
+ALLOWED CATEGORIES
+========================================
+
+Use exactly ONE of these categories:
+
 - Uncollected Waste
 - Illegal Dumping
 - Plastic Waste
@@ -108,27 +130,45 @@ CATEGORY MUST BE ONE OF:
 - Blocked Drain Waste
 - Other
 
-DECISION RULES:
+========================================
+CONFIDENCE RULES
+========================================
 
-1. If clearly visible waste and confidence >= 0.80:
-   status = "Approved"
+Confidence must be a number from 0 to 1.
 
-2. If image may contain waste but evidence is uncertain
-   and confidence is between 0.50 and 0.79:
-   status = "Review"
+If clearly visible waste and confidence >= 0.80:
+status = "Approved"
 
-3. If confidence < 0.50 OR image is unrelated:
-   status = "Rejected"
+If possible waste is visible but evidence is uncertain
+and confidence is between 0.50 and 0.79:
+status = "Review"
 
-4. If there is no visible waste:
-   isWaste = false
-   status = "Rejected"
+If confidence < 0.50:
+status = "Rejected"
 
-5. Confidence must be a number between 0 and 1.
+If no visible waste exists:
+isWaste = false
+status = "Rejected"
 
-Do not include markdown.
-Do not include ```json.
-Return JSON only.
+========================================
+RETURN FORMAT
+========================================
+
+Return ONLY valid JSON.
+
+Do not return markdown.
+Do not return code fences.
+Do not return any text outside JSON.
+
+Use exactly this structure:
+
+{
+  "isWaste": true,
+  "confidence": 0.95,
+  "category": "Plastic Waste",
+  "explanation": "Visible accumulation of plastic waste is present.",
+  "status": "Approved"
+}
 `,
             },
 
@@ -143,23 +183,45 @@ Return JSON only.
     });
 
     // ==========================================
-    // READ AI RESPONSE
+    // READ OPENAI RESPONSE
     // ==========================================
 
     let resultText = response.output_text?.trim();
 
+    console.log("🤖 OpenAI Raw Response:", resultText);
+
     if (!resultText) {
-      throw new Error("AI returned an empty response");
+      throw new Error("OpenAI returned an empty response");
     }
 
-    // Remove accidental markdown fences
+    // ==========================================
+    // REMOVE MARKDOWN FENCES IF AI ADDS THEM
+    // ==========================================
+
     resultText = resultText
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
       .replace(/\s*```$/i, "")
       .trim();
 
-    const aiResult = JSON.parse(resultText);
+    // ==========================================
+    // PARSE JSON
+    // ==========================================
+
+    let aiResult;
+
+    try {
+      aiResult = JSON.parse(resultText);
+    } catch (parseError) {
+      console.error(
+        "❌ Failed to parse OpenAI JSON:",
+        resultText
+      );
+
+      throw new Error(
+        "OpenAI returned invalid JSON"
+      );
+    }
 
     // ==========================================
     // NORMALIZE AI RESULT
@@ -174,23 +236,48 @@ Return JSON only.
     }
 
     // Keep confidence between 0 and 1
-    confidence = Math.max(0, Math.min(1, confidence));
+    confidence = Math.max(
+      0,
+      Math.min(1, confidence)
+    );
 
-    const category =
+    // ==========================================
+    // VALID CATEGORIES
+    // ==========================================
+
+    const allowedCategories = [
+      "Uncollected Waste",
+      "Illegal Dumping",
+      "Plastic Waste",
+      "Organic Waste",
+      "Hazardous Waste",
+      "Construction Waste",
+      "Blocked Drain Waste",
+      "Other",
+    ];
+
+    let category =
       typeof aiResult.category === "string"
         ? aiResult.category.trim()
-        : "";
+        : "Other";
+
+    if (!allowedCategories.includes(category)) {
+      category = "Other";
+    }
+
+    // ==========================================
+    // EXPLANATION
+    // ==========================================
 
     const explanation =
-      typeof aiResult.explanation === "string"
+      typeof aiResult.explanation === "string" &&
+      aiResult.explanation.trim()
         ? aiResult.explanation.trim()
-        : "AI analysis completed.";
+        : "AI image analysis completed.";
 
     // ==========================================
-    // SERVER-SIDE DECISION
+    // SERVER-SIDE FINAL DECISION
     // ==========================================
-    // AI ke status par blindly trust nahi karenge.
-    // Backend khud final status calculate karega.
 
     let status = "Rejected";
 
@@ -202,6 +289,15 @@ Return JSON only.
       status = "Rejected";
     }
 
+    // If AI says no waste, always reject
+    if (!isWaste) {
+      status = "Rejected";
+    }
+
+    // ==========================================
+    // FINAL RESULT
+    // ==========================================
+
     return {
       isWaste,
       confidence,
@@ -210,9 +306,12 @@ Return JSON only.
       status,
     };
   } catch (error) {
-    console.error("AI Image Verification Error:", error);
+    console.error(
+      "❌ AI Image Verification Error:",
+      error
+    );
 
-    // AI fail hone par complaint ko automatically approve nahi karna.
+    // AI failure should NEVER automatically approve
     return {
       isWaste: false,
       confidence: 0,
@@ -240,6 +339,19 @@ const createComplaint = async (req, res) => {
       category,
     } = req.body;
 
+    console.log("=================================");
+    console.log("📝 CREATE COMPLAINT");
+    console.log("Title:", title);
+    console.log("Location:", location);
+    console.log("Latitude:", latitude);
+    console.log("Longitude:", longitude);
+    console.log("Category:", category);
+    console.log(
+      "Image received:",
+      req.file ? req.file.originalname : "NO IMAGE"
+    );
+    console.log("=================================");
+
     // ==========================================
     // BASIC VALIDATION
     // ==========================================
@@ -265,7 +377,7 @@ const createComplaint = async (req, res) => {
     }
 
     // ==========================================
-    // VALIDATE COORDINATES
+    // VALIDATE LATITUDE
     // ==========================================
 
     const numericLatitude =
@@ -274,6 +386,10 @@ const createComplaint = async (req, res) => {
       latitude !== ""
         ? Number(latitude)
         : undefined;
+
+    // ==========================================
+    // VALIDATE LONGITUDE
+    // ==========================================
 
     const numericLongitude =
       longitude !== undefined &&
@@ -310,14 +426,15 @@ const createComplaint = async (req, res) => {
     // AI IMAGE VERIFICATION
     // ==========================================
 
-    console.log("🤖 Starting AI waste verification...");
-
-    const aiVerification = await verifyWasteImage(
-      req.file
+    console.log(
+      "🤖 Starting AI waste verification..."
     );
 
+    const aiVerification =
+      await verifyWasteImage(req.file);
+
     console.log(
-      "🤖 AI Result:",
+      "🤖 FINAL AI RESULT:",
       aiVerification
     );
 
@@ -339,14 +456,12 @@ const createComplaint = async (req, res) => {
     // ==========================================
     // TEMPORARY IMAGE STORAGE
     // ==========================================
-    // NOTE:
-    // For now image is stored as base64 in MongoDB.
-    // Later Cloudinary/S3 can be added for production.
 
     const base64Image =
       req.file.buffer.toString("base64");
 
-    const imageDataUrl = `data:${req.file.mimetype};base64,${base64Image}`;
+    const imageDataUrl =
+      `data:${req.file.mimetype};base64,${base64Image}`;
 
     // ==========================================
     // CREATE COMPLAINT
@@ -374,13 +489,17 @@ const createComplaint = async (req, res) => {
       aiVerification: {
         isWaste: aiVerification.isWaste,
 
-        confidence: aiVerification.confidence,
+        confidence:
+          aiVerification.confidence,
 
-        category: aiVerification.category,
+        category:
+          aiVerification.category,
 
-        explanation: aiVerification.explanation,
+        explanation:
+          aiVerification.explanation,
 
-        status: aiVerification.status,
+        status:
+          aiVerification.status,
       },
     });
 
@@ -395,21 +514,29 @@ const createComplaint = async (req, res) => {
       );
 
     // ==========================================
-    // RESPONSE
+    // RESPONSE MESSAGE
     // ==========================================
 
     let message =
       "Complaint submitted successfully";
 
-    if (aiVerification.status === "Review") {
+    if (
+      aiVerification.status === "Review"
+    ) {
       message =
         "Complaint submitted and sent for admin review because the AI could not verify the image with high confidence.";
     }
 
-    if (aiVerification.status === "Approved") {
+    if (
+      aiVerification.status === "Approved"
+    ) {
       message =
         "Complaint submitted successfully. AI verified the waste image.";
     }
+
+    // ==========================================
+    // SUCCESS RESPONSE
+    // ==========================================
 
     return res.status(201).json({
       success: true,
@@ -422,13 +549,22 @@ const createComplaint = async (req, res) => {
     });
   } catch (error) {
     console.error(
-      "Create Complaint Error:",
+      "❌ Create Complaint Error:",
       error
+    );
+
+    console.error(
+      "Error message:",
+      error.message
     );
 
     return res.status(500).json({
       success: false,
       message: "Server error",
+      error:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : undefined,
     });
   }
 };
@@ -439,14 +575,15 @@ const createComplaint = async (req, res) => {
 
 const getAllComplaints = async (req, res) => {
   try {
-    const complaints = await Complaint.find()
-      .populate(
-        "user",
-        "name email phone"
-      )
-      .sort({
-        createdAt: -1,
-      });
+    const complaints =
+      await Complaint.find()
+        .populate(
+          "user",
+          "name email phone"
+        )
+        .sort({
+          createdAt: -1,
+        });
 
     return res.status(200).json({
       success: true,
@@ -472,16 +609,17 @@ const getAllComplaints = async (req, res) => {
 
 const getMyComplaints = async (req, res) => {
   try {
-    const complaints = await Complaint.find({
-      user: req.user.id,
-    })
-      .populate(
-        "user",
-        "name email phone"
-      )
-      .sort({
-        createdAt: -1,
-      });
+    const complaints =
+      await Complaint.find({
+        user: req.user.id,
+      })
+        .populate(
+          "user",
+          "name email phone"
+        )
+        .sort({
+          createdAt: -1,
+        });
 
     return res.status(200).json({
       success: true,
@@ -529,7 +667,9 @@ const updateComplaintStatus = async (
     const complaint =
       await Complaint.findByIdAndUpdate(
         req.params.id,
+
         { status },
+
         {
           new: true,
           runValidators: true,
@@ -548,8 +688,10 @@ const updateComplaintStatus = async (
 
     return res.status(200).json({
       success: true,
+
       message:
         "Complaint status updated successfully",
+
       complaint,
     });
   } catch (error) {
