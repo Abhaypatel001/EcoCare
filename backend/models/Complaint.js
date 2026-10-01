@@ -20,14 +20,16 @@ const complaintSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // Real readable address
+    // ==========================================
+    // REAL LOCATION
+    // ==========================================
+
     location: {
       type: String,
       required: true,
       trim: true,
     },
 
-    // Real GPS coordinates
     latitude: {
       type: Number,
       required: false,
@@ -38,12 +40,15 @@ const complaintSchema = new mongoose.Schema(
       required: false,
     },
 
-    // Optional nearby landmark
     landmark: {
       type: String,
       default: "",
       trim: true,
     },
+
+    // ==========================================
+    // COMPLAINT CATEGORY
+    // ==========================================
 
     category: {
       type: String,
@@ -57,15 +62,64 @@ const complaintSchema = new mongoose.Schema(
       default: "Other",
     },
 
+    // ==========================================
+    // COMPLAINT STATUS
+    // ==========================================
+
     status: {
       type: String,
       enum: ["Pending", "In Progress", "Resolved", "Rejected"],
       default: "Pending",
     },
 
+    // ==========================================
+    // IMAGE
+    // ==========================================
+
     image: {
       type: String,
       default: "",
+    },
+
+    // ==========================================
+    // AI IMAGE VERIFICATION
+    // ==========================================
+
+    aiVerification: {
+      // Did AI detect waste in the image?
+      isWaste: {
+        type: Boolean,
+        default: false,
+      },
+
+      // AI confidence from 0 to 1
+      confidence: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 1,
+      },
+
+      // Waste category detected by AI
+      category: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+
+      // AI explanation
+      explanation: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+
+      // AI decision
+      status: {
+        type: String,
+        enum: ["Approved", "Review", "Rejected"],
+        default: "Review",
+      },
     },
   },
   {
